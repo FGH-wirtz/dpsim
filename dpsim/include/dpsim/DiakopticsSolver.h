@@ -11,6 +11,7 @@
 #include <dpsim-models/AttributeList.h>
 #include <dpsim-models/SimSignalComp.h>
 #include <dpsim-models/Solver/MNAInterface.h>
+#include <dpsim-models/Solver/MNAVariableCompInterface.h>
 #include <dpsim/DataLogger.h>
 #include <dpsim/Solver.h>
 
@@ -41,6 +42,9 @@ private:
     std::vector<const Matrix *> rightVectorStamps;
     /// Left-side vector of the subnet AFTER complete step
     CPS::Attribute<Matrix>::Ptr leftVector;
+    // #### MNA specific attributes related to system recomputation
+    /// List of components that indicate system matrix recomputation
+    CPS::MNAVariableCompInterface::List mVariableComps;
   };
 
   ///
@@ -125,7 +129,9 @@ public:
     }
 
     void execute(Real time, Int timeStepCount);
-
+    void recomputeSubnetMatrix(Real time);
+    /// Check whether status of variable MNA elements has changed
+    Bool hasVariableComponentChanged();
   private:
     DiakopticsSolver<VarType> &mSolver;
     Subnet &mSubnet;

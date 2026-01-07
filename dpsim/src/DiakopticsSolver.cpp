@@ -80,6 +80,10 @@ void DiakopticsSolver<VarType>::initSubnets(
       auto sigComp = std::dynamic_pointer_cast<CPS::SimSignalComp>(comp);
       if (sigComp)
         mSimSignalComps.push_back(sigComp);
+
+      auto mnaVarComp = std::dynamic_pointer_cast<CPS::MNAVariableCompInterface>(comp);
+      if (mnaVarComp)
+        mSubnets[i].mVariableComps.push_back(mnaVarComp);
     }
   }
 
@@ -505,6 +509,31 @@ template <typename VarType> Task::List DiakopticsSolver<VarType>::getTasks() {
 }
 
 template <typename VarType>
+void DiakopticsSolver<VarType>::SubnetSolveTask::recomputeSubnetMatrix(Real time) {
+
+  CPS::SparseMatrixRow partSys =
+      CPS::SparseMatrixRow(mSubnet.sysSize, mSubnet.sysSize);
+  for (auto comp : mSubnet.components) {
+    comp->mnaApplySystemMatrixStamp(partSys);
+  }
+  mSubnet.luFactorization = Eigen::PartialPivLU<Matrix>(partSys);
+}
+
+template <typename VarType>
+Bool DiakopticsSolver<VarType>::SubnetSolveTask::hasVariableComponentChanged() {
+  bool changed = false;
+  for (auto varElem : mSubnet.mVariableComps) {
+    if (varElem->hasParameterChanged()) {
+      auto idObj = std::dynamic_pointer_cast<IdentifiedObject>(varElem);
+      // if we return true here directly, not all functions are called
+      // and some internal bools lead to further recalculation at t+1
+      changed = true; 
+    }
+  }
+  return changed;
+}
+
+template <typename VarType>
 void DiakopticsSolver<VarType>::SubnetSolveTask::execute(Real time,
                                                          Int timeStepCount) {
   auto rBlock =
@@ -516,6 +545,10 @@ void DiakopticsSolver<VarType>::SubnetSolveTask::execute(Real time,
 
   auto lBlock = (**mSolver.mOrigLeftSideVector)
                     .block(mSubnet.sysOff, 0, mSubnet.sysSize, 1);
+
+  if (hasVariableComponentChanged()) {
+    recomputeSubnetMatrix(time);
+  }
   // Solve Y' * v' = I
   lBlock = mSubnet.luFactorization.solve(rBlock);
 }
