@@ -221,6 +221,9 @@ if(WITH_CIM)
 		CIM/EMT_CIGRE_MV_withoutDG.cpp
 		CIM/EMT_CIGRE_MV_withDG.cpp
 		CIM/EMT_CIGRE_MV_withDG_withLoadStep.cpp
+
+		# IEEE 39 examples
+		CIM/EMT_IEEE_39bus_CIM.cpp
 	)
 
 	list(APPEND TEST_SOURCES
