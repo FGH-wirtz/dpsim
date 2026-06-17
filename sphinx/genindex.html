@@ -7,14 +7,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Index &mdash; DPsim - documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
       <script src="_static/documentation_options.js?v=b1628c55"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="#" />
@@ -408,6 +408,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Reference.html#dpsimpy.Simulation.do_state_space_extraction">do_state_space_extraction() (dpsimpy.Simulation method)</a>
+</li>
       <li><a href="Reference.html#dpsimpy.Simulation.do_steady_state_init">do_steady_state_init() (dpsimpy.Simulation method)</a>
 </li>
       <li><a href="Reference.html#dpsimpy.Simulation.do_system_matrix_recomputation">do_system_matrix_recomputation() (dpsimpy.Simulation method)</a>
@@ -529,10 +531,16 @@
 </li>
       <li><a href="Reference.html#dpsimpy.DirectLinearSolverConfiguration.get_btf">get_btf() (dpsimpy.DirectLinearSolverConfiguration method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Reference.html#dpsimpy.StateSpaceModalAnalysis.get_continuous_eigenvalues">get_continuous_eigenvalues() (dpsimpy.StateSpaceModalAnalysis method)</a>
+</li>
+      <li><a href="Reference.html#dpsimpy.StateSpaceModalAnalysis.get_discrete_eigenvalues">get_discrete_eigenvalues() (dpsimpy.StateSpaceModalAnalysis method)</a>
+</li>
+      <li><a href="Reference.html#dpsimpy.MNAStateSpaceExtractor.get_discrete_state_matrix">get_discrete_state_matrix() (dpsimpy.MNAStateSpaceExtractor method)</a>
+</li>
       <li><a href="Reference.html#dpsimpy.DirectLinearSolverConfiguration.get_fill_in_reduction_method">get_fill_in_reduction_method() (dpsimpy.DirectLinearSolverConfiguration method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Reference.html#dpsimpy.Simulation.get_idobj_attr">get_idobj_attr() (dpsimpy.Simulation method)</a>
 </li>
       <li><a href="Reference.html#dpsimpy.Logger.get_log_dir">get_log_dir() (dpsimpy.Logger static method)</a>
@@ -541,12 +549,20 @@
 </li>
       <li><a href="Reference.html#dpsimpy.DirectLinearSolverConfiguration.get_scaling_method">get_scaling_method() (dpsimpy.DirectLinearSolverConfiguration method)</a>
 </li>
+      <li><a href="Reference.html#dpsimpy.MNAStateSpaceExtractor.get_state_count">get_state_count() (dpsimpy.MNAStateSpaceExtractor method)</a>
+</li>
+      <li><a href="Reference.html#dpsimpy.Simulation.get_state_space_extractor">get_state_space_extractor() (dpsimpy.Simulation method)</a>
+</li>
       <li><a href="Reference.html#dpsimpy.SimPowerCompComplex.get_terminal">get_terminal() (dpsimpy.SimPowerCompComplex method)</a>
 
       <ul>
         <li><a href="Reference.html#dpsimpy.SimPowerCompReal.get_terminal">(dpsimpy.SimPowerCompReal method)</a>
 </li>
       </ul></li>
+      <li><a href="Reference.html#dpsimpy.MNAStateSpaceExtractor.get_time_step">get_time_step() (dpsimpy.MNAStateSpaceExtractor method)</a>
+</li>
+      <li><a href="Reference.html#dpsimpy.StateSpaceAnalysisFrame.GlobalDQ0">GlobalDQ0 (dpsimpy.StateSpaceAnalysisFrame attribute)</a>
+</li>
       <li><a href="Reference.html#dpsimpy.dp.SimNode.gnd">gnd (dpsimpy.dp.SimNode attribute)</a>
 
       <ul>
@@ -602,6 +618,8 @@
       <li><a href="Reference.html#dpsimpy.Interface">Interface (class in dpsimpy)</a>
 </li>
       <li><a href="Reference.html#dpsimpy.dp.ph1.Inverter">Inverter (class in dpsimpy.dp.ph1)</a>, <a href="Reference.html#id20">[1]</a>
+</li>
+      <li><a href="Reference.html#dpsimpy.MNAStateSpaceExtractor.is_initialized">is_initialized() (dpsimpy.MNAStateSpaceExtractor method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -719,6 +737,8 @@
 </li>
       <li><a href="Reference.html#dpsimpy.Solver.MNA">MNA (dpsimpy.Solver attribute)</a>
 </li>
+      <li><a href="Reference.html#dpsimpy.MNAStateSpaceExtractor">MNAStateSpaceExtractor (class in dpsimpy)</a>
+</li>
       <li><a href="Reference.html#dpsimpy.sp.ph1.Load.modify_power_flow_bus_type">modify_power_flow_bus_type() (dpsimpy.sp.ph1.Load method)</a>, <a href="Reference.html#id163">[1]</a>
 
       <ul>
@@ -752,38 +772,6 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Reference.html#dpsimpy.CSVReaderFormat.name">name (dpsimpy.CSVReaderFormat property)</a>
-
-      <ul>
-        <li><a href="Reference.html#dpsimpy.CSVReaderMode.name">(dpsimpy.CSVReaderMode property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.DirectLinearSolverImpl.name">(dpsimpy.DirectLinearSolverImpl property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.Domain.name">(dpsimpy.Domain property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.fill_in_reduction_method.name">(dpsimpy.fill_in_reduction_method property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.GeneratorType.name">(dpsimpy.GeneratorType property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.LogLevel.name">(dpsimpy.LogLevel property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.partial_refactorization_method.name">(dpsimpy.partial_refactorization_method property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.PhaseType.name">(dpsimpy.PhaseType property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.PowerflowBusType.name">(dpsimpy.PowerflowBusType property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.scaling_method.name">(dpsimpy.scaling_method property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.Solver.name">(dpsimpy.Solver property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.SolverBehaviour.name">(dpsimpy.SolverBehaviour property)</a>
-</li>
-        <li><a href="Reference.html#dpsimpy.use_btf.name">(dpsimpy.use_btf property)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Reference.html#dpsimpy.IdentifiedObject.name">name() (dpsimpy.IdentifiedObject method)</a>
 
       <ul>
@@ -792,6 +780,8 @@
         <li><a href="Reference.html#dpsimpy.Simulation.name">(dpsimpy.Simulation method)</a>
 </li>
       </ul></li>
+      <li><a href="Reference.html#dpsimpy.StateSpaceAnalysisFrame.Native">Native (dpsimpy.StateSpaceAnalysisFrame attribute)</a>
+</li>
       <li><a href="Reference.html#dpsimpy.dp.ph1.NetworkInjection">NetworkInjection (class in dpsimpy.dp.ph1)</a>, <a href="Reference.html#id23">[1]</a>
 
       <ul>
@@ -800,6 +790,8 @@
       </ul></li>
       <li><a href="Reference.html#dpsimpy.Simulation.next">next() (dpsimpy.Simulation method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Reference.html#dpsimpy.use_btf.no_btf">no_btf (dpsimpy.use_btf attribute)</a>
 </li>
       <li><a href="Reference.html#dpsimpy.partial_refactorization_method.no_partial_refactorization">no_partial_refactorization (dpsimpy.partial_refactorization_method attribute)</a>
@@ -938,6 +930,8 @@
         <li><a href="Reference.html#dpsimpy.AttributeString.set">(dpsimpy.AttributeString method)</a>
 </li>
       </ul></li>
+      <li><a href="Reference.html#dpsimpy.StateSpaceModalAnalysis.set_analysis_frame">set_analysis_frame() (dpsimpy.StateSpaceModalAnalysis method)</a>
+</li>
       <li><a href="Reference.html#dpsimpy.sp.ph1.NetworkInjection.set_base_voltage">set_base_voltage() (dpsimpy.sp.ph1.NetworkInjection method)</a>, <a href="Reference.html#id168">[1]</a>
 
       <ul>
@@ -983,6 +977,8 @@
 </li>
       </ul></li>
       <li><a href="Reference.html#dpsimpy.dp.ph1.SynchronGeneratorTrStab.set_fundamental_parameters_PU">set_fundamental_parameters_PU() (dpsimpy.dp.ph1.SynchronGeneratorTrStab method)</a>, <a href="Reference.html#id68">[1]</a>
+</li>
+      <li><a href="Reference.html#dpsimpy.StateSpaceModalAnalysis.set_global_dq0_frame">set_global_dq0_frame() (dpsimpy.StateSpaceModalAnalysis method)</a>
 </li>
       <li><a href="Reference.html#dpsimpy.dp.ph1.varResSwitch.set_init_parameters">set_init_parameters() (dpsimpy.dp.ph1.varResSwitch method)</a>, <a href="Reference.html#id88">[1]</a>
 
@@ -1246,6 +1242,10 @@
 </li>
       <li><a href="Reference.html#dpsimpy.Simulation.start">start() (dpsimpy.Simulation method)</a>
 </li>
+      <li><a href="Reference.html#dpsimpy.StateSpaceAnalysisFrame">StateSpaceAnalysisFrame (class in dpsimpy)</a>
+</li>
+      <li><a href="Reference.html#dpsimpy.StateSpaceModalAnalysis">StateSpaceModalAnalysis (class in dpsimpy)</a>
+</li>
       <li><a href="Reference.html#dpsimpy.Simulation.stop">stop() (dpsimpy.Simulation method)</a>
 </li>
       <li><a href="Reference.html#dpsimpy.scaling_method.sum_scaling">sum_scaling (dpsimpy.scaling_method attribute)</a>
@@ -1340,6 +1340,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Reference.html#dpsimpy.StateSpaceModalAnalysis.update">update() (dpsimpy.StateSpaceModalAnalysis method)</a>
+</li>
       <li><a href="Reference.html#dpsimpy.use_btf">use_btf (class in dpsimpy)</a>
 </li>
   </ul></td>
@@ -1382,6 +1384,8 @@
         <li><a href="Reference.html#dpsimpy.Solver.value">(dpsimpy.Solver property)</a>
 </li>
         <li><a href="Reference.html#dpsimpy.SolverBehaviour.value">(dpsimpy.SolverBehaviour property)</a>
+</li>
+        <li><a href="Reference.html#dpsimpy.StateSpaceAnalysisFrame.value">(dpsimpy.StateSpaceAnalysisFrame property)</a>
 </li>
         <li><a href="Reference.html#dpsimpy.use_btf.value">(dpsimpy.use_btf property)</a>
 </li>
