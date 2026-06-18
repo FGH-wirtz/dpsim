@@ -67,8 +67,9 @@ private:
   Matrix mLeftSideVector;
   /// Complete matrix in block form
   Matrix mSystemMatrix;
-  /// Inverse of the complete system matrix (only used for initialization)
-  Matrix mSystemInverse;
+  /// Block-diagonal system inverse applied to the tear topology (Y_block^-1 * C);
+  /// used to assemble the tear-impedance Schur complement
+  Matrix mSystemInverseTearTopology;
   /// Topology of the network removal
   Matrix mTearTopology;
   /// Impedance of the removed network
@@ -76,6 +77,10 @@ private:
   /// (Factorization of the) impedance matrix for the removed network, including
   /// the influence of other subnets
   CPS::LUFactorized mTotalTearImpedance;
+  /// Assembled (un-factorized) tear-impedance Schur complement
+  /// (Z_tear + C^T * Y_block^-1 * C), maintained incrementally across
+  /// system-matrix recomputations
+  Matrix mTearSchur;
   /// Currents through the removed network
   Matrix mTearCurrents;
   /// Voltages across the removed network
@@ -174,6 +179,9 @@ public:
         : Task(solver.mName + ".PostSolve"), mSolver(solver) {
       for (auto &net : solver.mSubnets) {
         mAttributeDependencies.push_back(net.leftVector);
+        for (UInt node = 0; node < net.mRealNetNodeNum; ++node) {
+          mModifiedAttributes.push_back(net.nodes[node]->attribute("v"));
+        }
       }
       mModifiedAttributes.push_back(Scheduler::external);
     }

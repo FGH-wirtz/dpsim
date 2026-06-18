@@ -221,7 +221,6 @@ template <> void DiakopticsSolver<Complex>::setLogColumns() {
 template <typename VarType> void DiakopticsSolver<VarType>::createMatrices() {
   UInt totalSize = mSubnets.back().sysOff + mSubnets.back().sysSize;
   mSystemMatrix = Matrix::Zero(totalSize, totalSize);
-  mSystemInverse = Matrix::Zero(totalSize, totalSize);
 
   mRightSideVector = Matrix::Zero(totalSize, 1);
   mLeftSideVector = Matrix::Zero(totalSize, 1);
@@ -289,6 +288,11 @@ template <typename VarType> void DiakopticsSolver<VarType>::initComponents() {
   // Initialize signal components.
   for (auto comp : mSimSignalComps)
     comp->initialize(mSystem.mSystemOmega, mTimeStep);
+
+  // Initialize nodes
+  for (UInt net = 0; net < mSubnets.size(); ++net)
+    for (auto node : mSubnets[net].nodes)
+      node->initialize();
 }
 
 template <typename VarType> void DiakopticsSolver<VarType>::initMatrices() {
@@ -319,13 +323,17 @@ template <typename VarType> void DiakopticsSolver<VarType>::initMatrices() {
   SPDLOG_LOGGER_INFO(mSLog, "Topology matrix: \n{}", mTearTopology);
   SPDLOG_LOGGER_INFO(mSLog, "Removed impedance matrix: \n{}", mTearImpedance);
   // TODO this can be sped up as well by using the block diagonal form of Yinv
+  mSystemInverseTearTopology =
+      Matrix::Zero(mTearTopology.rows(), mTearTopology.cols());
   for (auto &net : mSubnets) {
-    mSystemInverse.block(net.sysOff, net.sysOff, net.sysSize, net.sysSize) =
-        net.luFactorization.inverse();
+    mSystemInverseTearTopology.block(net.sysOff, 0, net.sysSize,
+                                     mTearTopology.cols()) =
+        net.luFactorization.solve(mTearTopology.block(
+            net.sysOff, 0, net.sysSize, mTearTopology.cols()));
   }
-  mTotalTearImpedance = Eigen::PartialPivLU<Matrix>(
-      mTearImpedance +
-      mTearTopology.transpose() * mSystemInverse * mTearTopology);
+  mTearSchur =
+      mTearImpedance + mTearTopology.transpose() * mSystemInverseTearTopology;
+  mTotalTearImpedance = Eigen::PartialPivLU<Matrix>(mTearSchur);
   SPDLOG_LOGGER_INFO(mSLog,
                      "Total removed impedance matrix LU decomposition: \n{}",
                      mTotalTearImpedance.matrixLU());
@@ -517,6 +525,18 @@ void DiakopticsSolver<VarType>::SubnetSolveTask::recomputeSubnetMatrix(Real time
     comp->mnaApplySystemMatrixStamp(partSys);
   }
   mSubnet.luFactorization = Eigen::PartialPivLU<Matrix>(partSys);
+
+  auto tearTopoBlock = mSolver.mTearTopology.block(
+      mSubnet.sysOff, 0, mSubnet.sysSize, mSolver.mTearTopology.cols());
+  auto invTopoBlock = mSolver.mSystemInverseTearTopology.block(
+      mSubnet.sysOff, 0, mSubnet.sysSize, mSolver.mTearTopology.cols());
+
+  Matrix invTopoBlockOld = invTopoBlock;
+  invTopoBlock = mSubnet.luFactorization.solve(tearTopoBlock);
+  mSolver.mTearSchur +=
+      tearTopoBlock.transpose() * (invTopoBlock - invTopoBlockOld);
+
+  mSolver.mTotalTearImpedance = Eigen::PartialPivLU<Matrix>(mSolver.mTearSchur);
 }
 
 template <typename VarType>

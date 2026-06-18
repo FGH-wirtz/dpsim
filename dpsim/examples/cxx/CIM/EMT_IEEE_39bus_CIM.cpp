@@ -165,7 +165,7 @@ void EMT_IEEE_39Bus_3ph_openMP(Real timeStep, Real finalTime) {
 
   auto start = std::chrono::high_resolution_clock::now();
 
-  Int threads = 3;
+  Int threads = 2;
   Simulation sim(simName, Logger::Level::off);
   // Events
   Real startTimeFault = 0.1;
@@ -259,6 +259,7 @@ void EMT_IEEE_39Bus_3ph_Diakoptics(Real timeStep, Real finalTime) {
   sim.addEvent(sw1);
   sim.setDomain(CPS::Domain::EMT);
   sim.setSystem(sys);
+  sim.setTearingComponents(sys.mTearComponents);
   sim.setTimeStep(timeStep);
   sim.setFinalTime(finalTime);
   sim.doSteadyStateInit(false);
@@ -342,11 +343,12 @@ void EMT_IEEE_39Bus_3ph_Diakoptics_openMP(Real timeStep, Real finalTime) {
   Real startTimeFault = 0.1;
   auto sw1 = SwitchEvent3Ph::make(startTimeFault, switch05_g, true);
   sim.addEvent(sw1);
-  Int threads = 3;
+  Int threads = 2;
   if (threads > 0)
     sim.setScheduler(std::make_shared<OpenMPLevelScheduler>(threads));
   sim.setDomain(CPS::Domain::EMT);
   sim.setSystem(sys);
+  sim.setTearingComponents(sys.mTearComponents);
   sim.setTimeStep(timeStep);
   sim.setFinalTime(finalTime);
   sim.doSteadyStateInit(false);
