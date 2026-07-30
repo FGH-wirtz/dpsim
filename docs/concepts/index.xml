@@ -1,4 +1,106 @@
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>DPsim – Concepts</title><link>https://sogno-platform.github.io/dpsim/docs/concepts/</link><description>Recent content in Concepts on DPsim</description><generator>Hugo -- gohugo.io</generator><atom:link href="https://sogno-platform.github.io/dpsim/docs/concepts/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: State-Space Extraction</title><link>https://sogno-platform.github.io/dpsim/docs/concepts/state-space-extraction-theory/</link><pubDate>Thu, 28 May 2026 00:00:00 +0000</pubDate><guid>https://sogno-platform.github.io/dpsim/docs/concepts/state-space-extraction-theory/</guid><description>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>DPsim – Concepts</title><link>https://sogno-platform.github.io/dpsim/docs/concepts/</link><description>Recent content in Concepts on DPsim</description><generator>Hugo -- gohugo.io</generator><atom:link href="https://sogno-platform.github.io/dpsim/docs/concepts/index.xml" rel="self" type="application/rss+xml"/><item><title>Docs: State-Space Nodal</title><link>https://sogno-platform.github.io/dpsim/docs/concepts/state-space-nodal/</link><pubDate>Tue, 23 Jun 2026 00:00:00 +0000</pubDate><guid>https://sogno-platform.github.io/dpsim/docs/concepts/state-space-nodal/</guid><description>
+&lt;p>The state-space nodal (SSN) method represents a component by its own continuous
+state-space model and couples it to the network through the nodal admittance
+matrix. A component is described by&lt;/p>
+&lt;div class="math">$$\frac{d\mathbf{x}}{dt} = \mathbf{A}\mathbf{x} + \mathbf{B}\mathbf{u},
+\qquad
+\mathbf{y} = \mathbf{C}\mathbf{x} + \mathbf{D}\mathbf{u},$$&lt;/div>&lt;p>where $\mathbf{x}$ is the internal state, and the input $\mathbf{u}$ and output
+$\mathbf{y}$ are the terminal quantities exchanged with the network (a voltage and
+the corresponding current). Trapezoidal discretisation of $(\mathbf{A}, \mathbf{B})$
+yields a discrete model $(\mathbf{A}_d, \mathbf{B}_d)$ and a Norton equivalent: a
+constant conductance $\mathbf{W}$ stamped into the system matrix plus a history
+current source recomputed each step from the previous state and input. Because the
+component is solved simultaneously with the network in the same nodal system, SSN
+is numerically robust without the parasitic snubbers that delayed
+current-injection schemes require.&lt;/p>
+&lt;p>This builds directly on &lt;a href="https://sogno-platform.github.io/dpsim/docs/concepts/nodal-analysis/">Nodal Analysis&lt;/a> and is
+the companion of
+&lt;a href="https://sogno-platform.github.io/dpsim/docs/concepts/state-space-extraction-theory/">State-Space Extraction&lt;/a>, which
+recovers a state-space model from an MNA simulation rather than starting from one.&lt;/p>
+&lt;h1 id="shift-to-the-dynamic-phasor-envelope">Shift to the Dynamic-Phasor Envelope&lt;/h1>
+&lt;p>In the &lt;a href="https://sogno-platform.github.io/dpsim/docs/concepts/dyn-phasors/">Dynamic Phasors&lt;/a> (shifted-frequency)
+domain a physical quantity is written as a slowly varying complex envelope on a
+carrier $\omega_s$,&lt;/p>
+&lt;div class="math">$$x(t) = \operatorname{Re}\{\, X(t)\, e^{j \omega_s t} \,\},$$&lt;/div>&lt;p>so that differentiation maps to
+$\frac{dx}{dt} \rightarrow \frac{dX}{dt} + j \omega_s X$. The physical
+state-space model therefore becomes, for the envelope,&lt;/p>
+&lt;div class="math">$$\frac{d\mathbf{X}}{dt} = (\mathbf{A} - j \omega_s \mathbf{I})\,\mathbf{X}
++ \mathbf{B}\,\mathbf{U}.$$&lt;/div>&lt;p>DPsim does not solve the dynamic-phasor system as a complex matrix: every
+complex admittance $g = g_r + j g_i$ is stamped as a real $2 \times 2$ block
+$\left[\begin{smallmatrix} g_r &amp;amp; -g_i \ g_i &amp;amp; g_r \end{smallmatrix}\right]$, with the real
+and imaginary node parts living in separate halves of a real-valued system. The
+DP-SSN model matches this by carrying the envelope in real/imaginary-split form
+$[\mathbf{X}_r; \mathbf{X}_i]$ and writing the carrier shift explicitly as a real
+augmented model,&lt;/p>
+&lt;div class="math">$$\mathbf{A}_\text{aug} =
+\begin{bmatrix} \mathbf{A} &amp; \omega_s \mathbf{I} \\ -\omega_s \mathbf{I} &amp; \mathbf{A} \end{bmatrix},
+\qquad
+\mathbf{B}_\text{aug} = \begin{bmatrix} \mathbf{B} &amp; \mathbf{0} \\ \mathbf{0} &amp; \mathbf{B} \end{bmatrix}.$$&lt;/div>&lt;p>The same real trapezoidal discretisation used by the EMT SSN models then applies
+unchanged, the Norton conductance comes out as a real block that stamps directly
+into the augmented network, and the interface reads and writes the real and
+imaginary node halves directly with no complex assembly. The $\pm \omega_s$
+coupling block is algebraically exact; placing a rotating-frame term inside the
+real state matrix follows the established SSN practice for rotating-machine
+models.&lt;/p>
+&lt;h1 id="components">Components&lt;/h1>
+&lt;p>The single-phase dynamic-phasor SSN models are:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>Full_Serial_RLC&lt;/code>, a series resistor-inductor-capacitor one-port with a
+hand-derived state-space model, used as the reference component.&lt;/li>
+&lt;li>&lt;code>GenericTwoTerminalVTypeSSN&lt;/code> and &lt;code>GenericTwoTerminalITypeSSN&lt;/code>, which accept a
+user-supplied $(\mathbf{A}, \mathbf{B}, \mathbf{C}, \mathbf{D})$ and build the
+V-type (voltage input, current output) or I-type (current input, voltage
+output) stamping accordingly.&lt;/li>
+&lt;/ul>
+&lt;p>All three reproduce the classical dynamic-phasor stamping of the same circuit,
+and the reconstructed time-domain waveform matches the EMT and EMT-SSN results
+within discretisation error.&lt;/p>
+&lt;h1 id="three-phase-components">Three-Phase Components&lt;/h1>
+&lt;p>The same real-augmented model extends per phase to &lt;code>DP::Ph3&lt;/code>. The
+$3 \times 3$ $\mathbf{A}$, $\mathbf{B}$, $\mathbf{C}$, $\mathbf{D}$ matrices
+are general, so off-diagonal entries can couple the phases together:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>Full_Serial_RLC&lt;/code>, the three-phase series RLC one-port.&lt;/li>
+&lt;li>&lt;code>GenericTwoTerminalVTypeSSN&lt;/code> and &lt;code>GenericTwoTerminalITypeSSN&lt;/code>, the
+three-phase generic V-type and I-type components.&lt;/li>
+&lt;/ul>
+&lt;p>As in the single-phase case, all three reproduce the classical three-phase
+dynamic-phasor stamping exactly, and the reconstructed time-domain waveform
+matches the EMT and EMT-SSN results within discretisation error once
+corrected for the RMS-to-peak scaling that &lt;code>EMT::Ph3&lt;/code> sources apply and
+&lt;code>DP::Ph3&lt;/code> sources do not, since the DP envelope already carries the complex
+amplitude directly. The notebooks below only exercise the symmetrical,
+diagonal case; coupling between phases is not covered by existing tests.&lt;/p>
+&lt;h1 id="variable-components">Variable Components&lt;/h1>
+&lt;p>The components above are fixed-parameter LTI systems: $(\mathbf{A}, \mathbf{B},
+\mathbf{C}, \mathbf{D})$ are built once from the component&amp;rsquo;s parameters and never
+change. Some SSN components instead depend on the operating point and are
+relinearized and re-stamped every step (via &lt;code>MNAVariableCompInterface&lt;/code>), the same
+simultaneous nodal solve but around a Jacobian frozen at the previous step&amp;rsquo;s
+converged state rather than a constant matrix. &lt;code>DP::Ph1::AvVoltSourceInverterStateSpace&lt;/code>,
+an averaged grid-following inverter, is one such component, and its three-phase
+analogue &lt;code>DP::Ph3::AvVoltSourceInverterStateSpace&lt;/code> carries a complex envelope per
+phase while sharing a single positive-sequence dq control frame; see
+&lt;a href="https://sogno-platform.github.io/dpsim/docs/models/power-electronics/">Power Electronics&lt;/a> for their state vectors and
+model equations.&lt;/p>
+&lt;h1 id="validation-and-examples">Validation and Examples&lt;/h1>
+&lt;p>Two notebooks accompany the single-phase models, both on a single-carrier
+series RLC one-port. &lt;code>examples/Notebooks/Circuits/DP_generalizedSSN_RLC.ipynb&lt;/code>
+validates the DP-SSN models against the classical dynamic-phasor stamping and
+the EMT and EMT-SSN waveforms. &lt;code>examples/Notebooks/Circuits/DP_SSN_RLC_accuracy.ipynb&lt;/code>
+studies the time-step and frequency-dependent accuracy against a small-step
+EMT reference.&lt;/p>
+&lt;p>The three-phase analogues,
+&lt;code>examples/Notebooks/Circuits/DP_Ph3_generalizedSSN_RLC.ipynb&lt;/code> and
+&lt;code>examples/Notebooks/Circuits/DP_Ph3_SSN_RLC_accuracy.ipynb&lt;/code>, repeat both
+studies on &lt;code>DP::Ph3&lt;/code> circuits, including a current-driven network with generic
+V-type and I-type components and a three-phase fault transient.&lt;/p>
+&lt;h1 id="further-reading">Further Reading&lt;/h1>
+&lt;ul>
+&lt;li>C. Dufour, J. Mahseredjian, and J. Bélanger, &lt;em>A Combined State-Space Nodal Method for the Simulation of Power System Transients&lt;/em>, &lt;em>IEEE Transactions on Power Delivery&lt;/em>, vol. 26, no. 2, pp. 928–935, 2011. &lt;a href="https://doi.org/10.1109/TPWRD.2010.2090364">https://doi.org/10.1109/TPWRD.2010.2090364&lt;/a>&lt;/li>
+&lt;li>C. Dufour and D. S. Nasrallah, &lt;em>State-space-nodal rotating machine models with improved numerical stability&lt;/em>, &lt;em>IECON 2016 – 42nd Annual Conference of the IEEE Industrial Electronics Society&lt;/em>, 2016. &lt;a href="https://doi.org/10.1109/IECON.2016.7793690">https://doi.org/10.1109/IECON.2016.7793690&lt;/a>&lt;/li>
+&lt;li>A. A. Kida, A. C. S. Lima, F. A. Moreira, J. R. Martí, and J. Tarazona, &lt;em>Inaccuracies due to the frequency warping in simulation of electrical systems using combined state–space nodal analysis&lt;/em>, &lt;em>Electric Power Systems Research&lt;/em>, vol. 223, art. 109657, 2023. &lt;a href="https://doi.org/10.1016/j.epsr.2023.109657">https://doi.org/10.1016/j.epsr.2023.109657&lt;/a>&lt;/li>
+&lt;/ul></description></item><item><title>Docs: State-Space Extraction</title><link>https://sogno-platform.github.io/dpsim/docs/concepts/state-space-extraction-theory/</link><pubDate>Thu, 28 May 2026 00:00:00 +0000</pubDate><guid>https://sogno-platform.github.io/dpsim/docs/concepts/state-space-extraction-theory/</guid><description>
 &lt;p>Discrete-time state-space model is extracted from the EMT MNA simulation model. The extracted model is assembled in the form:&lt;/p>
 &lt;div class="math">$$\mathbf{x}[k+1]
 =
@@ -263,4 +365,46 @@ sparse grids.&lt;/li>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The flag is ignored and the dense solver is used if DPsim was built without a sparse
 linear solver. The benchmark notebook
 &lt;code>examples/Notebooks/Grids/PF_Sparse_vs_Dense.ipynb&lt;/code> runs a range of network sizes both
-ways, verifies the converged voltages match, and compares run time.&lt;/p></description></item></channel></rss>
+ways, verifies the converged voltages match, and compares run time.&lt;/p>
+&lt;h1 id="generator-reactive-power-limits">Generator Reactive Power Limits&lt;/h1>
+&lt;p>A PV bus assumes its generator can produce whatever reactive power the Newton-Raphson
+solution asks for, holding $\vert V_k \vert$ at its setpoint. Real generators cannot: Q
+is bounded by $Q_{min}$ and $Q_{max}$. DPsim can enforce these bounds with a
+bidirectional PV↔PQ outer loop:&lt;/p>
+&lt;ol>
+&lt;li>Run the inner Newton-Raphson solve to convergence (as described above).&lt;/li>
+&lt;li>For every PV bus, compute the generator&amp;rsquo;s actual reactive output. If it exceeds
+$Q_{max}$ or falls below $Q_{min}$, pin the injection at the violated limit and
+convert the bus to PQ.&lt;/li>
+&lt;li>For every bus pinned this way in an earlier pass, check whether the constraint has
+relaxed: if $\vert V_k \vert$ has moved past its original setpoint in the releasing
+direction, restore voltage control and convert the bus back to PV.&lt;/li>
+&lt;li>Repeat from step 1 until no bus switches, an outer-iteration cap is hit, or a
+per-bus switch counter trips (an anti-oscillation guard, since a bus can otherwise
+toggle PV↔PQ indefinitely near the boundary).&lt;/li>
+&lt;/ol>
+&lt;p>Enforcement is opt-in and defaults off, so a system with no limits configured behaves
+exactly as before:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-python" data-lang="python">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#000">sim&lt;/span>&lt;span style="color:#ce5c00;font-weight:bold">.&lt;/span>&lt;span style="color:#000">set_pf_solver_enforce_q_limits&lt;/span>&lt;span style="color:#000;font-weight:bold">(&lt;/span>&lt;span style="color:#204a87;font-weight:bold">True&lt;/span>&lt;span style="color:#000;font-weight:bold">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>$Q_{min}$/$Q_{max}$ are set per generator via &lt;code>SynchronGenerator.set_parameters(..., q_limit_max=..., q_limit_min=...)&lt;/code>; the defaults are $\pm\infty$ (unlimited).
+Generators sharing a bus have their limits summed. The two limits are enforced
+independently, with no assumption about sign or relative magnitude: asymmetric bounds
+(e.g. $Q_{max}=150$ MVAr, $Q_{min}=-30$ MVAr) and same-sign bounds (e.g. a generator
+restricted to $Q \in [20, 150]$ MVAr, always producing, or $Q \in [-150, -20]$ MVAr,
+always absorbing) are both enforced correctly.&lt;/p>
+&lt;p>&lt;strong>Limitation: no P-dependent capability curve.&lt;/strong> $Q_{min}$ and $Q_{max}$ are constants
+set once per generator, not a function of active power output $P$. A real synchronous
+generator&amp;rsquo;s reactive capability is a &amp;ldquo;D-curve&amp;rdquo; bounded by three physically distinct
+mechanisms: the stator (armature) current limit $\sqrt{P^2+Q^2} \le S_{rated}$, the
+rotor (field) current / heating limit on the over-excited (Q-providing) side, and the
+under-excitation limiter (UEL) / steady-state stability limit on the under-excited
+(Q-absorbing) side. All three tighten as $P$ approaches rated output, and the over- and
+under-excited bounds come from unrelated physical limits, so the true feasible region is
+neither symmetric in $Q$ nor independent of $P$. DPsim does not model this curve; a
+generator&amp;rsquo;s $Q$ headroom is the same regardless of how much $P$ it is producing at the
+time. Flat per-generator limits are a common baseline in power-flow tools generally, so
+this is not a regression, but a P-dependent capability curve is not currently
+implemented.&lt;/p>
+&lt;p>The notebook &lt;code>examples/Notebooks/Grids/PF_Generator_Qlimits.ipynb&lt;/code> validates the
+switching behavior on a small hand-wired case (binding and non-binding limits, dense vs.
+sparse agreement).&lt;/p></description></item></channel></rss>
