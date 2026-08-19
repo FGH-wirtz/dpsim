@@ -26,6 +26,19 @@ comments only to lines present in the diff.&lt;/p>
 &lt;p>The prompts encode DPsim&amp;rsquo;s documented conventions (see
 &lt;a href="https://sogno.energy/dpsim/docs/contributing/">Guidelines&lt;/a>) and the recurring points raised in
 past reviews, so the feedback stays specific to this project rather than generic.&lt;/p>
+&lt;h2 id="what-gets-posted">What gets posted&lt;/h2>
+&lt;p>Not every finding the passes raise reaches the pull request.&lt;/p>
+&lt;p>&lt;strong>Tentative findings are not posted.&lt;/strong> A finding that verification could not
+confirm against the source, or that carries a confidence below 50 %, is written
+to the workflow log only. Over the review history of a merged pull request this
+was the large majority of everything raised, and effectively none of it was
+actionable; posting it buried the findings that were.&lt;/p>
+&lt;p>&lt;strong>A run with nothing to say does not post a second review.&lt;/strong> The runner reviews
+again on every push. When a run has nothing left after the rule above, it edits
+its previous review instead, appending a line recording that the head commit was
+re-checked and nothing new was found. Editing a review body sends no
+notification, so those runs are visible on the pull request but silent in your
+inbox; only a run with something to say posts, and only that one mails you.&lt;/p>
 &lt;h2 id="configuration">Configuration&lt;/h2>
 &lt;p>The workflow requires one repository secret:&lt;/p>
 &lt;ul>
@@ -93,4 +106,120 @@ the privileged job runs only trusted base-repository code, so untrusted pull
 request code never executes with the secret in scope. The PR metadata read from
 the collect artifact is validated (numeric PR number, hexadecimal SHAs) before
 use. For this to operate, both the workflows and the secret must reside on the
-repository the pull requests target.&lt;/p></description></item></channel></rss>
+repository the pull requests target.&lt;/p></description></item><item><title>Docs: Continuous Integration</title><link>https://sogno.energy/dpsim/docs/contributing/continuous-integration/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://sogno.energy/dpsim/docs/contributing/continuous-integration/</guid><description>
+&lt;h2 id="entry-point">Entry point&lt;/h2>
+&lt;p>Almost everything runs from a single workflow, &lt;code>.github/workflows/ci.yaml&lt;/code>. It
+triggers on pushes to &lt;code>master&lt;/code>, on tags, on pull requests and on manual dispatch,
+and it calls the reusable workflows that hold the actual work:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Reusable workflow&lt;/th>
+&lt;th>Contents&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>&lt;code>prepare-images.yaml&lt;/code>&lt;/td>
+&lt;td>builds the container images from their Dockerfiles and pushes them to the GitHub container registry&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>build-linux.yaml&lt;/code>&lt;/td>
+&lt;td>the five Linux compilations, Fedora and Rocky, with ccache&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>build-windows.yaml&lt;/code>&lt;/td>
+&lt;td>the two Windows compilations&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>checks.yaml&lt;/code>&lt;/td>
+&lt;td>pre-commit, the notebook output rule, the &lt;code>pyproject.toml&lt;/code> extras resolution, and cppcheck&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>test-linux.yaml&lt;/code>&lt;/td>
+&lt;td>the notebook test suite with coverage, the notebook result comparison, and the compiled WSCC 9 bus examples&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>run_villas_example.yaml&lt;/code>&lt;/td>
+&lt;td>one VILLASnode example per matrix entry&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>build-nix.yaml&lt;/code>&lt;/td>
+&lt;td>the Nix build&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>packaging-python.yaml&lt;/code>&lt;/td>
+&lt;td>source distribution, wheels, and the PyPI uploads&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;code>documentation.yaml&lt;/code>&lt;/td>
+&lt;td>the reference documentation and both deployment targets&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>&lt;code>ci.yaml&lt;/code> itself holds no build steps, only the triggers, the &lt;code>setup&lt;/code> job and the
+ordering.&lt;/p>
+&lt;p>One consequence is worth knowing before renaming anything. A required status
+check is identified by its name, and a job called through a reusable workflow
+reports as &lt;code>caller job / inner job&lt;/code>, so the branch protection rule has to list
+&lt;code>Build Linux / Rocky Linux&lt;/code> rather than &lt;code>Rocky Linux&lt;/code>. Matrix jobs whose &lt;code>name&lt;/code>
+interpolates a matrix value, as the build jobs do, are reported under exactly
+that rendered name; a matrix job with a static name would instead get a
+&lt;code>(matrix, values)&lt;/code> suffix appended. Renaming a job, or moving one between
+&lt;code>ci.yaml&lt;/code> and a reusable workflow, therefore invalidates its protection entry and
+has to be done together with an update to the branch protection settings.&lt;/p>
+&lt;h2 id="how-a-run-picks-its-container-images">How a run picks its container images&lt;/h2>
+&lt;p>The &lt;code>setup&lt;/code> job decides this per image, not for all of them at once. Each image
+has its own path filter, so editing &lt;code>Dockerfile.dev-rocky&lt;/code> rebuilds the Rocky
+image and leaves the other five alone. The two images that are built &lt;code>FROM&lt;/code> the
+development image, the release image and the Binder image, track the development
+image&amp;rsquo;s paths as well, so a change to &lt;code>Dockerfile.dev&lt;/code> rebuilds all three.
+Everything under &lt;code>packaging/Shell/&lt;/code> counts towards every image.&lt;/p>
+&lt;p>An image whose definition did not change is used as published on Docker Hub. One
+whose definition did change is rebuilt by &lt;code>prepare-images.yaml&lt;/code> and pushed to
+&lt;code>ghcr.io/&amp;lt;owner&amp;gt;/dpsim/&amp;lt;image&amp;gt;&lt;/code> under two tags, the commit SHA and the slugified
+ref name, and the run then builds against the SHA tag.&lt;/p>
+&lt;p>Manual dispatch takes a &lt;code>rebuild_images&lt;/code> input that forces every image to be
+rebuilt.&lt;/p>
+&lt;h2 id="pull-requests-from-forks">Pull requests from forks&lt;/h2>
+&lt;p>Rebuilding an image needs a token that may write packages, and a fork pull
+request gets a read-only one. &lt;code>CI&lt;/code> therefore listens on two events and lets
+exactly one of them through: a pull request from a branch of this repository runs
+on &lt;code>pull_request&lt;/code>, and one from a fork runs on &lt;code>pull_request_target&lt;/code>. The &lt;code>setup&lt;/code>
+job carries the condition, every other job depends on it, so the run that does
+not apply skips in its entirety.&lt;/p>
+&lt;p>On the &lt;code>pull_request_target&lt;/code> path &lt;code>setup&lt;/code> also carries the &lt;code>fork-pr&lt;/code> environment.
+That environment has required reviewers, and because the whole pipeline hangs off
+&lt;code>setup&lt;/code>, the approval is the single gate in front of a privileged run of code that
+came from a fork. It should not be granted without reading the change. Approving
+means the fork&amp;rsquo;s code builds and runs with a token that may write packages, and
+with the repository secrets that the test and documentation jobs inherit.&lt;/p>
+&lt;p>Both paths build their images inside the same run that consumes them, so a pull
+request is always tested against the images its own diff produces, and there is
+nothing to re-run by hand.&lt;/p>
+&lt;p>Because &lt;code>GITHUB_SHA&lt;/code> and &lt;code>GITHUB_REF_NAME&lt;/code> point at the base branch under
+&lt;code>pull_request_target&lt;/code>, &lt;code>setup&lt;/code> resolves the revision under test explicitly and
+passes it to every job, each of which checks out that revision rather than the
+default one.&lt;/p>
+&lt;p>The required check is the &lt;code>all&lt;/code> barrier job, which fails if any job it depends on
+failed or was cancelled. It renames itself on the path that does not apply, so
+only the real run claims the protected name.&lt;/p>
+&lt;h2 id="publishing-to-docker-hub">Publishing to Docker Hub&lt;/h2>
+&lt;p>&lt;code>publish-images.yaml&lt;/code> is what refreshes the &lt;code>sogno/dpsim&lt;/code> images that the
+documentation and the outside world consume. It runs on the self-hosted runner,
+needs the Docker Hub credentials, and triggers on pushes to &lt;code>master&lt;/code>, where it
+applies the same per-image path filters and republishes only what changed. Its
+manual dispatch takes an &lt;code>image&lt;/code> input for republishing a single image on
+demand.&lt;/p>
+&lt;h2 id="workflows-outside-ci">Workflows outside CI&lt;/h2>
+&lt;ul>
+&lt;li>&lt;code>sonar_cloud.yaml&lt;/code> and &lt;code>sonar_cloud_scan.yaml&lt;/code> are a deliberately separate
+pair. The scan holds &lt;code>SONAR_TOKEN&lt;/code> and is triggered by the completion of the
+unprivileged build workflow; folding the build into &lt;code>CI&lt;/code> would mean that any
+unrelated failing job suppresses the analysis.&lt;/li>
+&lt;li>&lt;code>llm-review.yml&lt;/code> and &lt;code>llm-review-collect.yml&lt;/code> are described under
+&lt;a href="../llm-pr-review/">LLM Pull Request Review&lt;/a>.&lt;/li>
+&lt;li>&lt;code>build_test_linux_rocky_profiling.yaml&lt;/code> is dispatch only.&lt;/li>
+&lt;li>&lt;code>documentation.yaml&lt;/code> is called by &lt;code>CI&lt;/code> on &lt;code>master&lt;/code>, and can also be dispatched
+on its own with an &lt;code>image&lt;/code> input.&lt;/li>
+&lt;/ul></description></item></channel></rss>

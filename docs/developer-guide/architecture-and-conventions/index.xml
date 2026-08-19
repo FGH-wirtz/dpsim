@@ -89,8 +89,8 @@ whatever binary was built at install time. The failure is silent, since the impo
 succeeds and simply gives you stale behaviour. Either rebuild and rely on &lt;code>PYTHONPATH&lt;/code> as above,
 or reinstall the package after every C++ change.&lt;/p>
 &lt;p>To summarise the three ways to get DPsim, in increasing order of involvement: &lt;code>pip install dpsim&lt;/code>
-for a released Linux wheel, a native build plus &lt;code>PYTHONPATH&lt;/code> for development, and &lt;code>make install&lt;/code>
-to place a build system wide.&lt;/p>
+for a released Linux or Windows wheel, a native build plus &lt;code>PYTHONPATH&lt;/code> for development, and
+&lt;code>make install&lt;/code> to place a build system wide.&lt;/p>
 &lt;p>If you develop inside a conda environment, the equivalent is to register the same two
 directories from within the active environment. This needs &lt;code>conda-build&lt;/code> installed:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#204a87">cd&lt;/span> /dpsim/build
@@ -132,7 +132,7 @@ version CI uses is:&lt;/p>
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Cloning, building and installing then work exactly as in the container section above.&lt;/p>
 &lt;h2 id="cmake-for-windows">CMake for Windows&lt;/h2>
 &lt;p>Windows is built in CI on &lt;code>windows-latest&lt;/code>, so the recipe below mirrors what
-&lt;code>.github/workflows/build_test_windows.yaml&lt;/code> runs. You need Visual Studio with the C++ desktop
+the &lt;code>Build Windows&lt;/code> jobs of &lt;code>.github/workflows/ci.yaml&lt;/code> run. You need Visual Studio with the C++ desktop
 development workload, &lt;a href="https://cmake.org/">CMake&lt;/a> and
 &lt;a href="https://git-scm.com/download/win">Git for Windows&lt;/a>. For Python support, install Python 3 and
 add it to your PATH. Let CMake pick the default generator rather than naming a Visual Studio
@@ -150,6 +150,12 @@ version, so the build follows whichever Visual Studio you have.&lt;/p>
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>cmake --build . --target dpsimpy --parallel
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If CMake rejects the spdlog dependency because of its minimum policy version, add
 &lt;code>-DCMAKE_POLICY_VERSION_MINIMUM=3.5&lt;/code>, which is what CI currently does as a workaround.&lt;/p>
+&lt;p>Visual Studio is a multi-configuration generator, so the configuration is chosen at build time
+with &lt;code>cmake --build . --config Release&lt;/code>, not with &lt;code>CMAKE_BUILD_TYPE&lt;/code>. DPsim adds its optimization
+flags per configuration and per compiler: MSVC gets &lt;code>/fp:fast&lt;/code> on top of the &lt;code>/O2&lt;/code> that CMake
+already supplies for &lt;code>Release&lt;/code> and &lt;code>RelWithDebInfo&lt;/code>, while the GCC and Clang flags &lt;code>-Ofast&lt;/code>,
+&lt;code>-march=native&lt;/code> and &lt;code>-flto&lt;/code> are never passed to &lt;code>cl.exe&lt;/code>. &lt;code>WITH_LTO&lt;/code> maps to &lt;code>/GL&lt;/code> and &lt;code>/LTCG&lt;/code>.
+&lt;code>WITH_MARCH_NATIVE&lt;/code> has no MSVC equivalent and is ignored with a warning.&lt;/p>
 &lt;p>The &lt;code>dpsim-villas&lt;/code> library is not available on Windows, since it requires VILLASnode, which does
 not build there. &lt;code>WITH_VILLAS&lt;/code> therefore stays off and the &lt;code>dpsimpyvillas&lt;/code> target does not exist,
 so co-simulation examples cannot be built on Windows. The CIM reader is likewise not part of the
@@ -163,8 +169,13 @@ Install the dependencies with Homebrew:&lt;/p>
 libcimpp, see &lt;a href="https://github.com/sogno-platform/dpsim/issues/609">issue #609&lt;/a>. Configure with
 &lt;code>-DWITH_CIM=OFF&lt;/code> if you do not need the CIM reader.&lt;/p>
 &lt;h2 id="python-package">Python package&lt;/h2>
-&lt;p>Wheels are produced by cibuildwheel in the &lt;code>publish_to_pypi&lt;/code> workflow, currently for
-manylinux x86_64 and CPython 3.9 through 3.13. To build a source distribution locally:&lt;/p>
+&lt;p>Wheels are produced by cibuildwheel in the &lt;code>packaging-python&lt;/code> workflow, currently for
+manylinux x86_64 and Windows x86-64, CPython 3.10 through 3.14. The Windows wheel is the
+reduced one described in &lt;a href="https://sogno.energy/dpsim/docs/user-guide/install/">install&lt;/a>, which also
+carries the full matrix. The set of versions lives in the &lt;code>tool.cibuildwheel&lt;/code> sections of
+&lt;code>pyproject.toml&lt;/code> and in the &lt;code>python&lt;/code> matrix of &lt;code>.github/workflows/packaging-python.yaml&lt;/code>, and
+both have to be changed together.
+To build a source distribution locally:&lt;/p>
 &lt;div class="highlight">&lt;pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-shell" data-lang="shell">&lt;span style="display:flex;">&lt;span>python3 -m build --sdist
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h3 id="nix">Nix&lt;/h3>
 &lt;p>DPsim can be built using &lt;a href="https://nixos.org/">Nix&lt;/a>, a declarative package manager for
