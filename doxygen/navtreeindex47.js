@@ -1,5 +1,9 @@
 var NAVTREEINDEX47 =
 {
+"class_c_p_s_1_1_sim_power_comp.html#af77ab6c0757630004f8c8ceccb641d9c":[1,0,0,44,37],
+"class_c_p_s_1_1_sim_power_comp.html#af77ab6c0757630004f8c8ceccb641d9c":[2,0,0,44,37],
+"class_c_p_s_1_1_sim_power_comp.html#af952dd9774477ae346be27cbd3b9c86a":[1,0,0,44,20],
+"class_c_p_s_1_1_sim_power_comp.html#af952dd9774477ae346be27cbd3b9c86a":[2,0,0,44,20],
 "class_c_p_s_1_1_sim_signal_comp.html":[1,0,0,45],
 "class_c_p_s_1_1_sim_signal_comp.html":[2,0,0,45],
 "class_c_p_s_1_1_sim_signal_comp.html#a36683fa7c374d9010a7c24bbb7f83d88":[1,0,0,45,9],
@@ -245,9 +249,5 @@ var NAVTREEINDEX47 =
 "class_c_p_s_1_1_topological_power_comp.html#ad4bab9363339096b12832d6795d07c65":[1,0,0,51,7],
 "class_c_p_s_1_1_topological_power_comp.html#ad4bab9363339096b12832d6795d07c65":[2,0,0,51,7],
 "class_c_p_s_1_1_topological_power_comp.html#ad738f90256252a9bd5e06415916c1adf":[1,0,0,51,3],
-"class_c_p_s_1_1_topological_power_comp.html#ad738f90256252a9bd5e06415916c1adf":[2,0,0,51,3],
-"class_c_p_s_1_1_topological_signal_comp.html":[1,0,0,52],
-"class_c_p_s_1_1_topological_signal_comp.html":[2,0,0,52],
-"class_c_p_s_1_1_topological_signal_comp.html#a120c61d193554754fbb2b783cc8c48d3":[1,0,0,52,2],
-"class_c_p_s_1_1_topological_signal_comp.html#a120c61d193554754fbb2b783cc8c48d3":[2,0,0,52,2]
+"class_c_p_s_1_1_topological_power_comp.html#ad738f90256252a9bd5e06415916c1adf":[2,0,0,51,3]
 };
