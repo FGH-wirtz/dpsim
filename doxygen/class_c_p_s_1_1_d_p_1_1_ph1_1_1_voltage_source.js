@@ -20,7 +20,6 @@ var class_c_p_s_1_1_d_p_1_1_ph1_1_1_voltage_source =
     [ "mnaCompPostStep", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_voltage_source.html#a530d91a28eaf9a75485732955f7f1463", null ],
     [ "mnaCompPreStep", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_voltage_source.html#ad11f20740d4f4ba9b473a39fd6f28853", null ],
     [ "mnaCompUpdateCurrent", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_voltage_source.html#ae9420468f0479c829ce0c064a1ca3514", null ],
-    [ "mnaUpdateTimeStep", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_voltage_source.html#ac02cd717b06aec4bfbadfc89dbea0f3d", null ],
     [ "setParameters", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_voltage_source.html#a05076e39f0e44d78ff73c4627f74581f", null ],
     [ "setParameters", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_voltage_source.html#ab9d59f67e602979d8d45d31c4987b107", null ],
     [ "setParameters", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_voltage_source.html#a6496c351ea8b6f24c9f44ec374651977", null ],

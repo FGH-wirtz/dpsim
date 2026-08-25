@@ -23,8 +23,6 @@ var class_c_p_s_1_1_composite_power_comp =
     [ "mnaParentInitialize", "class_c_p_s_1_1_composite_power_comp.html#abbc033aef2d5b43ca47ca80d6e2c7f96", null ],
     [ "mnaParentPostStep", "class_c_p_s_1_1_composite_power_comp.html#aaf6925fdfa9537fd49985a00b8dfa8df", null ],
     [ "mnaParentPreStep", "class_c_p_s_1_1_composite_power_comp.html#aec0167e51c7ef78899a86b0c7f3746cc", null ],
-    [ "mnaParentUpdateTimeStep", "class_c_p_s_1_1_composite_power_comp.html#a397460fd07aaafd59087dc53984101cd", null ],
     [ "mnaSubComponents", "class_c_p_s_1_1_composite_power_comp.html#a95abb9e4f441e89c9fb3f728ee5672bf", null ],
-    [ "mnaUpdateTimeStep", "class_c_p_s_1_1_composite_power_comp.html#ab5aec6e6645aaf651b2b198f4ecf009c", null ],
     [ "mSubCompCreated", "class_c_p_s_1_1_composite_power_comp.html#a230c4cafd696f2c14f9d3fef031cf988", null ]
 ];

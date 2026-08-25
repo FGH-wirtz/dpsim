@@ -17,6 +17,5 @@ var class_c_p_s_1_1_d_p_1_1_ph1_1_1_resistor =
     [ "mnaCompUpdateCurrentHarm", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_resistor.html#a07a57ae70ecb4f283e07df5761de0dfc", null ],
     [ "mnaCompUpdateVoltage", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_resistor.html#acc53510971c7e6c21cd72c62119f6ebf", null ],
     [ "mnaCompUpdateVoltageHarm", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_resistor.html#a88bd542bf2774d2b0e82ef635af83608", null ],
-    [ "mnaTearApplyMatrixStamp", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_resistor.html#ac53b3d8c97a0b41d55a67706a8c13a6c", null ],
-    [ "mnaUpdateTimeStep", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_resistor.html#add5b1fe67de466f927d09ea305caeb28", null ]
+    [ "mnaTearApplyMatrixStamp", "class_c_p_s_1_1_d_p_1_1_ph1_1_1_resistor.html#ac53b3d8c97a0b41d55a67706a8c13a6c", null ]
 ];

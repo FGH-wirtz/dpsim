@@ -140,9 +140,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad7aa4dbbf3946d3418b046217b608279"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0352643ef54954c2ae89d238f64f5132" id="r_a0352643ef54954c2ae89d238f64f5132"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0352643ef54954c2ae89d238f64f5132">mnaCompInitialize</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> omega, <a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep, <a class="el" href="class_c_p_s_1_1_attribute.html">Attribute</a>&lt; <a class="el" href="namespace_c_p_s.html#a081464dfe063130c6fca7929ce291b15">Matrix</a> &gt;<a class="el" href="class_c_p_s_1_1_d_a_e_interface.html#ae5b364df486165906a0b973dd9180962">::Ptr</a> leftVector)</td></tr>
 <tr class="separator:a0352643ef54954c2ae89d238f64f5132"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:add5b1fe67de466f927d09ea305caeb28" id="r_add5b1fe67de466f927d09ea305caeb28"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#add5b1fe67de466f927d09ea305caeb28">mnaUpdateTimeStep</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep) override</td></tr>
-<tr class="memdesc:add5b1fe67de466f927d09ea305caeb28"><td class="mdescLeft">&#160;</td><td class="mdescRight">Nothing here depends on the timestep.  <br /></td></tr>
-<tr class="separator:add5b1fe67de466f927d09ea305caeb28"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3716a8e66f3613e69aa19dee75a5ba49" id="r_a3716a8e66f3613e69aa19dee75a5ba49"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3716a8e66f3613e69aa19dee75a5ba49">mnaCompInitializeHarm</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> omega, <a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep, std::vector&lt; <a class="el" href="class_c_p_s_1_1_attribute.html">Attribute</a>&lt; <a class="el" href="namespace_c_p_s.html#a081464dfe063130c6fca7929ce291b15">Matrix</a> &gt;<a class="el" href="class_c_p_s_1_1_d_a_e_interface.html#ae5b364df486165906a0b973dd9180962">::Ptr</a> &gt; leftVector)</td></tr>
 <tr class="separator:a3716a8e66f3613e69aa19dee75a5ba49"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6fd7a36b83e51c20111a7fdcaf7f7666" id="r_a6fd7a36b83e51c20111a7fdcaf7f7666"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6fd7a36b83e51c20111a7fdcaf7f7666">mnaCompApplySystemMatrixStamp</a> (<a class="el" href="namespace_c_p_s.html#af0203b5aa6a69ba1b8642d8ccf5eb7be">SparseMatrixRow</a> &amp;systemMatrix)</td></tr>
@@ -1071,37 +1068,6 @@ Additional Inherited Members</h2></td></tr>
 <p>Implements <a class="el" href="class_c_p_s_1_1_m_n_a_tear_interface.html#a67793d2e89375d95a0038d4e18ab4b65">CPS::MNATearInterface</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="_d_p___ph1___resistor_8cpp_source.html#l00168">168</a> of file <a class="el" href="_d_p___ph1___resistor_8cpp_source.html">DP_Ph1_Resistor.cpp</a>.</p>
-
-</div>
-</div>
-<a id="add5b1fe67de466f927d09ea305caeb28" name="add5b1fe67de466f927d09ea305caeb28"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#add5b1fe67de466f927d09ea305caeb28">&#9670;&#160;</a></span>mnaUpdateTimeStep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool CPS::DP::Ph1::Resistor::mnaUpdateTimeStep </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a></td>          <td class="paramname"><span class="paramname"><em>timeStep</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Nothing here depends on the timestep. </p>
-
-<p>Reimplemented from <a class="el" href="class_c_p_s_1_1_m_n_a_interface.html#af801b3748483cae8d5b387df75318a6c">CPS::MNAInterface</a>.</p>
-
-<p class="definition">Definition at line <a class="el" href="_d_p___ph1___resistor_8h_source.html#l00043">43</a> of file <a class="el" href="_d_p___ph1___resistor_8h_source.html">DP_Ph1_Resistor.h</a>.</p>
 
 </div>
 </div>

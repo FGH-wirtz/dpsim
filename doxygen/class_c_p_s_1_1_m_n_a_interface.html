@@ -131,8 +131,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a19f3b3770b99fc16550413b2f77dbf2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa583b6d80d2ff9a01dab0446698a8cad" id="r_aa583b6d80d2ff9a01dab0446698a8cad"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aa583b6d80d2ff9a01dab0446698a8cad">mnaInitialize</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> omega, <a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep, <a class="el" href="class_c_p_s_1_1_attribute.html">Attribute</a>&lt; <a class="el" href="namespace_c_p_s.html#a081464dfe063130c6fca7929ce291b15">Matrix</a> &gt;<a class="el" href="#ae0ae005f7e53b1d5c27f508149a0da2e">::Ptr</a> leftVector)=0</td></tr>
 <tr class="separator:aa583b6d80d2ff9a01dab0446698a8cad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af801b3748483cae8d5b387df75318a6c" id="r_af801b3748483cae8d5b387df75318a6c"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af801b3748483cae8d5b387df75318a6c">mnaUpdateTimeStep</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep)</td></tr>
-<tr class="separator:af801b3748483cae8d5b387df75318a6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3054b9f3600edea682208639cd2aacc7" id="r_a3054b9f3600edea682208639cd2aacc7"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a3054b9f3600edea682208639cd2aacc7">mnaApplySystemMatrixStamp</a> (<a class="el" href="namespace_c_p_s.html#af0203b5aa6a69ba1b8642d8ccf5eb7be">SparseMatrixRow</a> &amp;systemMatrix)=0</td></tr>
 <tr class="memdesc:a3054b9f3600edea682208639cd2aacc7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stamps system matrix.  <br /></td></tr>
 <tr class="separator:a3054b9f3600edea682208639cd2aacc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -727,36 +725,6 @@ Public Member Functions</h2></td></tr>
 <p>Update interface current from MNA system result. </p>
 
 <p>Implemented in <a class="el" href="class_c_p_s_1_1_m_n_a_sim_power_comp.html#a74965a538a6185bcd6aad4ee31cfd835">CPS::MNASimPowerComp&lt; VarType &gt;</a>, <a class="el" href="class_c_p_s_1_1_m_n_a_sim_power_comp.html#a74965a538a6185bcd6aad4ee31cfd835">CPS::MNASimPowerComp&lt; Complex &gt;</a>, and <a class="el" href="class_c_p_s_1_1_m_n_a_sim_power_comp.html#a74965a538a6185bcd6aad4ee31cfd835">CPS::MNASimPowerComp&lt; Real &gt;</a>.</p>
-
-</div>
-</div>
-<a id="af801b3748483cae8d5b387df75318a6c" name="af801b3748483cae8d5b387df75318a6c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af801b3748483cae8d5b387df75318a6c">&#9670;&#160;</a></span>mnaUpdateTimeStep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual bool CPS::MNAInterface::mnaUpdateTimeStep </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a></td>          <td class="paramname"><span class="paramname"><em>timeStep</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Re-derives the timestep-dependent quantities and converts the history terms. False if the component cannot follow. </p>
-
-<p>Reimplemented in <a class="el" href="class_c_p_s_1_1_composite_power_comp.html#ab5aec6e6645aaf651b2b198f4ecf009c">CPS::CompositePowerComp&lt; VarType &gt;</a>, <a class="el" href="class_c_p_s_1_1_composite_power_comp.html#ab5aec6e6645aaf651b2b198f4ecf009c">CPS::CompositePowerComp&lt; Complex &gt;</a>, <a class="el" href="class_c_p_s_1_1_composite_power_comp.html#ab5aec6e6645aaf651b2b198f4ecf009c">CPS::CompositePowerComp&lt; Real &gt;</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_capacitor.html#ace6b6c9b3779a9d5a0f3106751f90d60">CPS::DP::Ph1::Capacitor</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_current_source.html#ac46c7f55985cbb880f8d9b03ed04fd9b">CPS::DP::Ph1::CurrentSource</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_inductor.html#a6e54ccfc72736d69addf8b0785026329">CPS::DP::Ph1::Inductor</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_resistor.html#add5b1fe67de466f927d09ea305caeb28">CPS::DP::Ph1::Resistor</a>, and <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_voltage_source.html#ac02cd717b06aec4bfbadfc89dbea0f3d">CPS::DP::Ph1::VoltageSource</a>.</p>
-
-<p class="definition">Definition at line <a class="el" href="_m_n_a_interface_8h_source.html#l00032">32</a> of file <a class="el" href="_m_n_a_interface_8h_source.html">MNAInterface.h</a>.</p>
 
 </div>
 </div>

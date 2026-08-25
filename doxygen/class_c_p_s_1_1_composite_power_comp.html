@@ -204,11 +204,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4715fb765c88e13259cb2a6492450c91" id="r_a4715fb765c88e13259cb2a6492450c91"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4715fb765c88e13259cb2a6492450c91">mnaCompAddPostStepDependencies</a> (<a class="el" href="class_c_p_s_1_1_attribute_base.html#af43dac6e42f93597b33862000dc563be">AttributeBase::List</a> &amp;prevStepDependencies, <a class="el" href="class_c_p_s_1_1_attribute_base.html#af43dac6e42f93597b33862000dc563be">AttributeBase::List</a> &amp;attributeDependencies, <a class="el" href="class_c_p_s_1_1_attribute_base.html#af43dac6e42f93597b33862000dc563be">AttributeBase::List</a> &amp;modifiedAttributes, <a class="el" href="class_c_p_s_1_1_attribute.html">Attribute</a>&lt; <a class="el" href="namespace_c_p_s.html#a081464dfe063130c6fca7929ce291b15">Matrix</a> &gt;<a class="el" href="#a707ca832f3ea093c4cb430c5466cc823">::Ptr</a> &amp;leftVector) override</td></tr>
 <tr class="memdesc:a4715fb765c88e13259cb2a6492450c91"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add MNA post step dependencies.  <br /></td></tr>
 <tr class="separator:a4715fb765c88e13259cb2a6492450c91"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab5aec6e6645aaf651b2b198f4ecf009c" id="r_ab5aec6e6645aaf651b2b198f4ecf009c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab5aec6e6645aaf651b2b198f4ecf009c">mnaUpdateTimeStep</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep) override final</td></tr>
-<tr class="separator:ab5aec6e6645aaf651b2b198f4ecf009c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a397460fd07aaafd59087dc53984101cd" id="r_a397460fd07aaafd59087dc53984101cd"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a397460fd07aaafd59087dc53984101cd">mnaParentUpdateTimeStep</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep)</td></tr>
-<tr class="memdesc:a397460fd07aaafd59087dc53984101cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts parent-owned state to the new timestep. False means unconverted.  <br /></td></tr>
-<tr class="separator:a397460fd07aaafd59087dc53984101cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abbc033aef2d5b43ca47ca80d6e2c7f96" id="r_abbc033aef2d5b43ca47ca80d6e2c7f96"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#abbc033aef2d5b43ca47ca80d6e2c7f96">mnaParentInitialize</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> omega, <a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep, <a class="el" href="class_c_p_s_1_1_attribute.html">Attribute</a>&lt; <a class="el" href="namespace_c_p_s.html#a081464dfe063130c6fca7929ce291b15">Matrix</a> &gt;<a class="el" href="#a707ca832f3ea093c4cb430c5466cc823">::Ptr</a> leftVector)</td></tr>
 <tr class="separator:abbc033aef2d5b43ca47ca80d6e2c7f96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0b9d79f25011a2a8637559aa52fec502" id="r_a0b9d79f25011a2a8637559aa52fec502"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0b9d79f25011a2a8637559aa52fec502">mnaParentApplySystemMatrixStamp</a> (<a class="el" href="namespace_c_p_s.html#af0203b5aa6a69ba1b8642d8ccf5eb7be">SparseMatrixRow</a> &amp;systemMatrix)</td></tr>
@@ -863,7 +858,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Add MNA post step dependencies. </p>
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00144">144</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00133">133</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
 
 </div>
 </div>
@@ -905,7 +900,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented from <a class="el" href="class_c_p_s_1_1_m_n_a_sim_power_comp.html#a4a50587b34a513feb30110967229e38f">CPS::MNASimPowerComp&lt; VarType &gt;</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00131">131</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00120">120</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
 
 </div>
 </div>
@@ -938,7 +933,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented from <a class="el" href="class_c_p_s_1_1_m_n_a_sim_power_comp.html#addaa4002352d62d655a76e2f203b11a0">CPS::MNASimPowerComp&lt; VarType &gt;</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00096">96</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00085">85</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
 
 </div>
 </div>
@@ -973,7 +968,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented in <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_transformer.html#a688e79bd75a718085dc3052301113998">CPS::DP::Ph1::Transformer</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_transformer.html#a5d9e26d5d19ed96f3a8d8d794f68a659">CPS::EMT::Ph3::Transformer</a>, and <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_transformer.html#a22eba8b5f47599c5d0a3617c78facec2">CPS::SP::Ph1::Transformer</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00087">87</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00076">76</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
 
 </div>
 </div>
@@ -1053,7 +1048,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>MNA post step operations. </p>
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00119">119</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00108">108</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
 
 </div>
 </div>
@@ -1090,7 +1085,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented from <a class="el" href="class_c_p_s_1_1_m_n_a_sim_power_comp.html#a0da06b857423f40b6a8143e5a5abff3d">CPS::MNASimPowerComp&lt; VarType &gt;</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00108">108</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00097">97</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
 
 </div>
 </div>
@@ -1133,7 +1128,7 @@ template&lt;typename VarType&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00136">136</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00132">132</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
 
 </div>
 </div>
@@ -1173,7 +1168,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented in <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_av_voltage_source_inverter_d_q.html#abae9179126d1e31c7bbe34bc2fe2f5ff">CPS::DP::Ph1::AvVoltageSourceInverterDQ</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_network_injection.html#ab7a8a9bce1fa7fd4b8fb6d146ed3bfa4">CPS::DP::Ph1::NetworkInjection</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_pi_line.html#ad6b7c75f2de4e042f30be8b8559db9bf">CPS::DP::Ph1::PiLine</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_p_q_load_c_s.html#a26cd5109b802bbb131d97dadaf78ee70">CPS::DP::Ph1::PQLoadCS</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_rx_line.html#ac155afbdcafb62add226823344a9b2bc">CPS::DP::Ph1::RxLine</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_r_x_load.html#abf08a94201458861202242b6d3065ad6">CPS::DP::Ph1::RXLoad</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_r_x_load_switch.html#a963da108e48f995602e2f96b214b8ebf">CPS::DP::Ph1::RXLoadSwitch</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_shunt.html#ae23fda88d14dc81d9dea85cc282216dd">CPS::DP::Ph1::Shunt</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_s_v_c.html#afaa883ff30975ac555a7cf5e1ae36f85">CPS::DP::Ph1::SVC</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_synchron_generator_ideal.html#a72735714680a75212c0df2525a02d875">CPS::DP::Ph1::SynchronGeneratorIdeal</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_synchron_generator_tr_stab.html#a549031246d6d3fea33bef7b0499087ce">CPS::DP::Ph1::SynchronGeneratorTrStab</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_transformer.html#adefb5afcf884027a1ced8bc8f76a4dae">CPS::DP::Ph1::Transformer</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph3_1_1_network_injection.html#a983d7a62255561685bb5d329f9ca0054">CPS::DP::Ph3::NetworkInjection</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph3_1_1_pi_line.html#a8af152965fed67f0487efec3e45777a6">CPS::DP::Ph3::PiLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_d_c_1_1_pi_line.html#a5066d325ff7a4091e81ea05a79df9ff0">CPS::EMT::DC::PiLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph1_1_1_pi_line.html#aae8f26c00e6457a9c9cd09543bcc90eb">CPS::EMT::Ph1::PiLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_av_voltage_source_inverter_d_q.html#abdeef37c11b3d8d3a9dac051d0c6b16e">CPS::EMT::Ph3::AvVoltageSourceInverterDQ</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_g_f_l.html#ae8a94b8e3503bc5cbbdf32a87e8b35ec">CPS::EMT::Ph3::GFL</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_half_decoupling_line.html#aedfa2e9a6cad5ff1eab76112fcd10086">CPS::EMT::Ph3::HalfDecouplingLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_network_injection.html#aefdbbdaa09d95ad8670ebd27d8f7f309">CPS::EMT::Ph3::NetworkInjection</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_pi_line.html#af730e5d19238e5f852d3581eddc64ab7">CPS::EMT::Ph3::PiLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_rx_line.html#a30dc4e0aa82bb3989beb41097f36dd74">CPS::EMT::Ph3::RxLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_r_x_load.html#a618e981612aaf626759b27ee9670578d">CPS::EMT::Ph3::RXLoad</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_shunt.html#a7214c25624d750959cc6984789d753f3">CPS::EMT::Ph3::Shunt</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_synchron_generator_ideal.html#a71ece4e226d7d63d5075e5a74f00bb7e">CPS::EMT::Ph3::SynchronGeneratorIdeal</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_synchron_generator_tr_stab.html#a292c7d46332f4366a82a02b2529bf5f1">CPS::EMT::Ph3::SynchronGeneratorTrStab</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_transformer.html#a192af20b874424113ef12a8362aa9bc4">CPS::EMT::Ph3::Transformer</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_v_s_i_voltage_control_v_c_o.html#a67bc70f3fe3ea34051e921b69da94008">CPS::EMT::Ph3::VSIVoltageControlVCO</a>, <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_av_voltage_source_inverter_d_q.html#ac61273a4074483944798d4e8b3f58b48">CPS::SP::Ph1::AvVoltageSourceInverterDQ</a>, <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_network_injection.html#a56f773b485945e4ed824ca0bc97e8ba0">CPS::SP::Ph1::NetworkInjection</a>, <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_r_x_line.html#a45428b02b995af81094f94744ddcefb7">CPS::SP::Ph1::RXLine</a>, <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_synchron_generator_tr_stab.html#af0c28f826755087e1d3f98e0a9878125">CPS::SP::Ph1::SynchronGeneratorTrStab</a>, and <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_transformer.html#a1d5ea9ffbda7590e2c311efebbad82ef">CPS::SP::Ph1::Transformer</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00130">130</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00126">126</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
 
 </div>
 </div>
@@ -1204,7 +1199,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented in <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_network_injection.html#a62492c133401eaa5f01565c968347834">CPS::DP::Ph1::NetworkInjection</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph3_1_1_network_injection.html#a8357ab208b30f561a208af8e12e636be">CPS::DP::Ph3::NetworkInjection</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_network_injection.html#a00232dd91a332443415e147f6f0c811f">CPS::EMT::Ph3::NetworkInjection</a>, and <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_network_injection.html#a37b62901963d519e43bebc025ccfc0c7">CPS::SP::Ph1::NetworkInjection</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00119">119</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00115">115</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
 
 </div>
 </div>
@@ -1233,7 +1228,7 @@ template&lt;typename VarType&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00116">116</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00112">112</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
 
 </div>
 </div>
@@ -1271,7 +1266,7 @@ template&lt;typename VarType&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00112">112</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00108">108</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
 
 </div>
 </div>
@@ -1309,7 +1304,7 @@ template&lt;typename VarType&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00125">125</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00121">121</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
 
 </div>
 </div>
@@ -1344,38 +1339,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented in <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_av_voltage_source_inverter_d_q.html#a031bc7bd6a3bbcfbaf8459282f39bff2">CPS::DP::Ph1::AvVoltageSourceInverterDQ</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_network_injection.html#a56a6580e12587f094b3737de4c0bc98f">CPS::DP::Ph1::NetworkInjection</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_pi_line.html#a071c8b9b8f2a869a8c80d3027a2cca8b">CPS::DP::Ph1::PiLine</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_p_q_load_c_s.html#a5381bbb0a0be7033362868556ea7c8bf">CPS::DP::Ph1::PQLoadCS</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_rx_line.html#abb6671ebf6a7c706b6a248508373967c">CPS::DP::Ph1::RxLine</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_r_x_load.html#ac09e839b89024b05606770f293338b85">CPS::DP::Ph1::RXLoad</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_r_x_load_switch.html#acfb25979998f6fb36882c0e40e1420c2">CPS::DP::Ph1::RXLoadSwitch</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_shunt.html#a2e5086751ba5927272911566bb538fe5">CPS::DP::Ph1::Shunt</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_s_v_c.html#adeabc82b3d6f869353012abbb35d3b68">CPS::DP::Ph1::SVC</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_synchron_generator_ideal.html#a77505ab084faa4c4a4e925bdf0599ced">CPS::DP::Ph1::SynchronGeneratorIdeal</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_synchron_generator_tr_stab.html#acbd96d67f42eca9f5ad546441597c7fc">CPS::DP::Ph1::SynchronGeneratorTrStab</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_transformer.html#a99d4e5aa6a7114d2d2641bf5149985bf">CPS::DP::Ph1::Transformer</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph1_1_1_voltage_source_ramp.html#ae0b487febdd3701099034fe5f7aa0816">CPS::DP::Ph1::VoltageSourceRamp</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph3_1_1_network_injection.html#a5ef2cb09e745165cc2ee5cd8d89af832">CPS::DP::Ph3::NetworkInjection</a>, <a class="el" href="class_c_p_s_1_1_d_p_1_1_ph3_1_1_pi_line.html#a1d57fb59d4c8fd9f1e106a8df0a41930">CPS::DP::Ph3::PiLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_d_c_1_1_pi_line.html#aa4cd8231111c5f306487125debd45185">CPS::EMT::DC::PiLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph1_1_1_pi_line.html#af1ea4f22e482ea97c7d76d030b373ce4">CPS::EMT::Ph1::PiLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph1_1_1_voltage_source_ramp.html#af9cdb68b271300a2e28ee88bee874657">CPS::EMT::Ph1::VoltageSourceRamp</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_av_voltage_source_inverter_d_q.html#acf207a5bd69857e32c13201c59a6cc6d">CPS::EMT::Ph3::AvVoltageSourceInverterDQ</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_g_f_l.html#a36b21dd3240a8dcbaf92d950b82eb4d2">CPS::EMT::Ph3::GFL</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_half_decoupling_line.html#a683896711ebde8ad69805ebed38c8303">CPS::EMT::Ph3::HalfDecouplingLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_network_injection.html#aa33c715f914ff61b8a4e010bbd834dda">CPS::EMT::Ph3::NetworkInjection</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_pi_line.html#a6dcd8ba15572da6ec8b68ae9e967350e">CPS::EMT::Ph3::PiLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_rx_line.html#abb803fb5217433710bc210cfcbfdd578">CPS::EMT::Ph3::RxLine</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_r_x_load.html#aa9478f03d1eb45ff8d4847c3da04f7bf">CPS::EMT::Ph3::RXLoad</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_shunt.html#a6c0717ab14cb9c1c0364e59f8d13770c">CPS::EMT::Ph3::Shunt</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_synchron_generator_ideal.html#a73d8a0f7e753013e250ae438b9d34809">CPS::EMT::Ph3::SynchronGeneratorIdeal</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_synchron_generator_tr_stab.html#a6e816a25a8e0fad1d6327c33947a49da">CPS::EMT::Ph3::SynchronGeneratorTrStab</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_transformer.html#aa3e24b9f4b029e63c5c1bfd7ff90e5c5">CPS::EMT::Ph3::Transformer</a>, <a class="el" href="class_c_p_s_1_1_e_m_t_1_1_ph3_1_1_v_s_i_voltage_control_v_c_o.html#a1bbe72e76e16084ffca10e41e6a59226">CPS::EMT::Ph3::VSIVoltageControlVCO</a>, <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_av_voltage_source_inverter_d_q.html#a11f79e96dbc3dab0214fc934b62054b9">CPS::SP::Ph1::AvVoltageSourceInverterDQ</a>, <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_network_injection.html#aa1ed174c615c514ce2d9772a639dd691">CPS::SP::Ph1::NetworkInjection</a>, <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_r_x_line.html#afff2e7bd7f349922c40f9f704d6a1af5">CPS::SP::Ph1::RXLine</a>, <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_synchron_generator_tr_stab.html#a071a1e766517ccde50e62583642d62c3">CPS::SP::Ph1::SynchronGeneratorTrStab</a>, and <a class="el" href="class_c_p_s_1_1_s_p_1_1_ph1_1_1_transformer.html#ae531225c1f4fa5e1100433c1b81cf616">CPS::SP::Ph1::Transformer</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00122">122</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
-
-</div>
-</div>
-<a id="a397460fd07aaafd59087dc53984101cd" name="a397460fd07aaafd59087dc53984101cd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a397460fd07aaafd59087dc53984101cd">&#9670;&#160;</a></span>mnaParentUpdateTimeStep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename VarType&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual bool <a class="el" href="class_c_p_s_1_1_composite_power_comp.html">CPS::CompositePowerComp</a>&lt; VarType &gt;::mnaParentUpdateTimeStep </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a></td>          <td class="paramname"><span class="paramname"><em>timeStep</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Converts parent-owned state to the new timestep. False means unconverted. </p>
-
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00111">111</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00118">118</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
 
 </div>
 </div>
@@ -1407,38 +1371,6 @@ template&lt;typename VarType&gt; </div>
 <p>The returned list remains owned by the composite and must not be modified by callers. </p>
 
 <p class="definition">Definition at line <a class="el" href="_composite_power_comp_8h_source.html#l00057">57</a> of file <a class="el" href="_composite_power_comp_8h_source.html">CompositePowerComp.h</a>.</p>
-
-</div>
-</div>
-<a id="ab5aec6e6645aaf651b2b198f4ecf009c" name="ab5aec6e6645aaf651b2b198f4ecf009c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab5aec6e6645aaf651b2b198f4ecf009c">&#9670;&#160;</a></span>mnaUpdateTimeStep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;typename VarType&gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool CompositePowerComp::mnaUpdateTimeStep </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a></td>          <td class="paramname"><span class="paramname"><em>timeStep</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel final">final</span><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p>Re-derives the timestep-dependent quantities and converts the history terms. False if the component cannot follow. </p>
-
-<p>Reimplemented from <a class="el" href="class_c_p_s_1_1_m_n_a_interface.html#af801b3748483cae8d5b387df75318a6c">CPS::MNAInterface</a>.</p>
-
-<p class="definition">Definition at line <a class="el" href="_composite_power_comp_8cpp_source.html#l00076">76</a> of file <a class="el" href="_composite_power_comp_8cpp_source.html">CompositePowerComp.cpp</a>.</p>
 
 </div>
 </div>

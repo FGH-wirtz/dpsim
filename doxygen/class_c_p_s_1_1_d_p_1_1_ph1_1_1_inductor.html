@@ -151,8 +151,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a8c524d4f3ddf1984216b7fc30105eaaa" id="r_a8c524d4f3ddf1984216b7fc30105eaaa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8c524d4f3ddf1984216b7fc30105eaaa">mnaCompInitialize</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> omega, <a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep, <a class="el" href="class_c_p_s_1_1_attribute.html">Attribute</a>&lt; <a class="el" href="namespace_c_p_s.html#a081464dfe063130c6fca7929ce291b15">Matrix</a> &gt;<a class="el" href="class_c_p_s_1_1_m_n_a_sim_power_comp.html#aab0bf0401a097ee2b253a9a6fc328101">::Ptr</a> leftVector) override</td></tr>
 <tr class="memdesc:a8c524d4f3ddf1984216b7fc30105eaaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes MNA specific variables.  <br /></td></tr>
 <tr class="separator:a8c524d4f3ddf1984216b7fc30105eaaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6e54ccfc72736d69addf8b0785026329" id="r_a6e54ccfc72736d69addf8b0785026329"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a6e54ccfc72736d69addf8b0785026329">mnaUpdateTimeStep</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep) override</td></tr>
-<tr class="separator:a6e54ccfc72736d69addf8b0785026329"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a52c3e6ba122ae02d23cb69a8e6754d77" id="r_a52c3e6ba122ae02d23cb69a8e6754d77"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a52c3e6ba122ae02d23cb69a8e6754d77">mnaCompInitializeHarm</a> (<a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> omega, <a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a> timeStep, std::vector&lt; <a class="el" href="class_c_p_s_1_1_attribute.html">Attribute</a>&lt; <a class="el" href="namespace_c_p_s.html#a081464dfe063130c6fca7929ce291b15">Matrix</a> &gt;<a class="el" href="class_c_p_s_1_1_m_n_a_sim_power_comp.html#aab0bf0401a097ee2b253a9a6fc328101">::Ptr</a> &gt; leftVectors) override</td></tr>
 <tr class="separator:a52c3e6ba122ae02d23cb69a8e6754d77"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af66cab0d95f1341ea8553d1f30b56b44" id="r_af66cab0d95f1341ea8553d1f30b56b44"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af66cab0d95f1341ea8553d1f30b56b44">mnaCompApplySystemMatrixStamp</a> (<a class="el" href="namespace_c_p_s.html#af0203b5aa6a69ba1b8642d8ccf5eb7be">SparseMatrixRow</a> &amp;systemMatrix) override</td></tr>
@@ -1346,36 +1344,6 @@ Additional Inherited Members</h2></td></tr>
 <p>Reimplemented from <a class="el" href="class_c_p_s_1_1_m_n_a_tear_interface.html#aa977b70347339ec54709fd6bf9459a75">CPS::MNATearInterface</a>.</p>
 
 <p class="definition">Definition at line <a class="el" href="_d_p___ph1___inductor_8cpp_source.html#l00287">287</a> of file <a class="el" href="_d_p___ph1___inductor_8cpp_source.html">DP_Ph1_Inductor.cpp</a>.</p>
-
-</div>
-</div>
-<a id="a6e54ccfc72736d69addf8b0785026329" name="a6e54ccfc72736d69addf8b0785026329"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e54ccfc72736d69addf8b0785026329">&#9670;&#160;</a></span>mnaUpdateTimeStep()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool CPS::DP::Ph1::Inductor::mnaUpdateTimeStep </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespace_c_p_s.html#a603c4b77d70922bc0423adc57725df50">Real</a></td>          <td class="paramname"><span class="paramname"><em>timeStep</em></span></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<p><a class="el" href="#a6f4b26c1c7916800c63ca2f2a98c9104">initVars()</a> rebuilds the factors and the history term, and overwrites mIntfCurrent, which is kept here. </p>
-
-<p>Reimplemented from <a class="el" href="class_c_p_s_1_1_m_n_a_interface.html#af801b3748483cae8d5b387df75318a6c">CPS::MNAInterface</a>.</p>
-
-<p class="definition">Definition at line <a class="el" href="_d_p___ph1___inductor_8h_source.html#l00063">63</a> of file <a class="el" href="_d_p___ph1___inductor_8h_source.html">DP_Ph1_Inductor.h</a>.</p>
 
 </div>
 </div>
