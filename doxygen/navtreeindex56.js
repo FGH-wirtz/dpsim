@@ -1,5 +1,15 @@
 var NAVTREEINDEX56 =
 {
+"class_d_psim_1_1_state_space_modal_analysis.html#a66c9dc6b730a09bffd2347ad1f2664e3":[2,0,1,50,8],
+"class_d_psim_1_1_state_space_modal_analysis.html#a9f9b32325be20b4cca2a89d8b9038321":[1,0,1,51,3],
+"class_d_psim_1_1_state_space_modal_analysis.html#a9f9b32325be20b4cca2a89d8b9038321":[2,0,1,50,3],
+"class_d_psim_1_1_state_space_modal_analysis.html#ac4de60436697036782c0792d142fc270":[1,0,1,51,5],
+"class_d_psim_1_1_state_space_modal_analysis.html#ac4de60436697036782c0792d142fc270":[2,0,1,50,5],
+"class_d_psim_1_1_state_space_modal_analysis.html#ac7baeb23711e59df3bf7d6f333d8086e":[1,0,1,51,4],
+"class_d_psim_1_1_state_space_modal_analysis.html#ac7baeb23711e59df3bf7d6f333d8086e":[2,0,1,50,4],
+"class_d_psim_1_1_switch_event.html":[1,0,1,53],
+"class_d_psim_1_1_switch_event.html":[2,0,1,52],
+"class_d_psim_1_1_switch_event.html#a031edbf24c478f0c7f5cf6d937366d02":[1,0,1,53,1],
 "class_d_psim_1_1_switch_event.html#a031edbf24c478f0c7f5cf6d937366d02":[2,0,1,52,1],
 "class_d_psim_1_1_switch_event.html#a1a17b22192f1208935b291639deefbfe":[1,0,1,53,2],
 "class_d_psim_1_1_switch_event.html#a1a17b22192f1208935b291639deefbfe":[2,0,1,52,2],
@@ -239,15 +249,5 @@ var NAVTREEINDEX56 =
 "dpsim_2include_2dpsim_2pybind_2_utils_8h.html#afcbe95c41617a5e37d075a8728e93d19":[3,0,1,0,0,2,7,4],
 "dpsim_2include_2dpsim_2pybind_2_utils_8h_source.html":[3,0,1,0,0,2,7],
 "example_8c.html":[3,0,1,1,1,0,0],
-"example_8c.html#a0146b1a02aea53d96148b2df160e3033":[3,0,1,1,1,0,0,4],
-"example_8c.html#a05d745915bfbfef6bd8d0a1631602c25":[3,0,1,1,1,0,0,0],
-"example_8c.html#a2ddfbe3e14f633df89a9d408b2c3c777":[3,0,1,1,1,0,0,1],
-"example_8c.html#a3c19c1a33fef38d88c271404988165b3":[3,0,1,1,1,0,0,2],
-"example_8c.html#a69eb15722cc863a2a39f3e81b961e40b":[3,0,1,1,1,0,0,7],
-"example_8c.html#a6bee17fa31ca342f31ecd9c57a5c9468":[3,0,1,1,1,0,0,5],
-"example_8c.html#a9d282677358285b7415fc4f7cc555e11":[3,0,1,1,1,0,0,6],
-"example_8c.html#ab9369f190b85c94537bc2ffbf6c585c8":[3,0,1,1,1,0,0,3],
-"example_8c_source.html":[3,0,1,1,1,0,0],
-"files.html":[3,0],
-"functions.html":[2,3,0]
+"example_8c.html#a0146b1a02aea53d96148b2df160e3033":[3,0,1,1,1,0,0,4]
 };

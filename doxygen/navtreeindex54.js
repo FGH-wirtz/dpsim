@@ -1,5 +1,15 @@
 var NAVTREEINDEX54 =
 {
+"class_d_psim_1_1_p_f_solver_power_polar.html#afefad2f606c3bc0728174d5318341026":[2,0,1,37,18],
+"class_d_psim_1_1_p_f_solver_power_polar_sparse.html":[1,0,1,39],
+"class_d_psim_1_1_p_f_solver_power_polar_sparse.html":[2,0,1,38],
+"class_d_psim_1_1_p_f_solver_power_polar_sparse.html#a01a1725e13009ec56d4c6b3b182f1d43":[1,0,1,39,8],
+"class_d_psim_1_1_p_f_solver_power_polar_sparse.html#a01a1725e13009ec56d4c6b3b182f1d43":[2,0,1,38,8],
+"class_d_psim_1_1_p_f_solver_power_polar_sparse.html#a1c6e668225007e111f7195fc39dfd046":[1,0,1,39,7],
+"class_d_psim_1_1_p_f_solver_power_polar_sparse.html#a1c6e668225007e111f7195fc39dfd046":[2,0,1,38,7],
+"class_d_psim_1_1_p_f_solver_power_polar_sparse.html#a2b146816a7bee977891d1561e4951fcf":[1,0,1,39,1],
+"class_d_psim_1_1_p_f_solver_power_polar_sparse.html#a2b146816a7bee977891d1561e4951fcf":[2,0,1,38,1],
+"class_d_psim_1_1_p_f_solver_power_polar_sparse.html#a81b10ddbc39ad79b212a22b877be8469":[1,0,1,39,4],
 "class_d_psim_1_1_p_f_solver_power_polar_sparse.html#a81b10ddbc39ad79b212a22b877be8469":[2,0,1,38,4],
 "class_d_psim_1_1_p_f_solver_power_polar_sparse.html#aad1768818c70fb8d2a59cb2eef80a19b":[1,0,1,39,5],
 "class_d_psim_1_1_p_f_solver_power_polar_sparse.html#aad1768818c70fb8d2a59cb2eef80a19b":[2,0,1,38,5],
@@ -239,15 +249,5 @@ var NAVTREEINDEX54 =
 "class_d_psim_1_1_simulation.html#a8c1b291992bf77b4926c0482700cf65d":[2,0,1,44,108],
 "class_d_psim_1_1_simulation.html#a8d688321e0e20b0bd49a8dc2333293f5":[1,0,1,45,97],
 "class_d_psim_1_1_simulation.html#a8d688321e0e20b0bd49a8dc2333293f5":[2,0,1,44,97],
-"class_d_psim_1_1_simulation.html#a8fe485dd6b17bed2914b5d1a5ef14cd8":[1,0,1,45,20],
-"class_d_psim_1_1_simulation.html#a8fe485dd6b17bed2914b5d1a5ef14cd8":[2,0,1,44,20],
-"class_d_psim_1_1_simulation.html#a90780a0284b22006b800a3cb9537394b":[1,0,1,45,100],
-"class_d_psim_1_1_simulation.html#a90780a0284b22006b800a3cb9537394b":[2,0,1,44,100],
-"class_d_psim_1_1_simulation.html#a91fbdd88ffcfa1685a16d94235fd9b95":[1,0,1,45,71],
-"class_d_psim_1_1_simulation.html#a91fbdd88ffcfa1685a16d94235fd9b95":[2,0,1,44,71],
-"class_d_psim_1_1_simulation.html#a9339463ecdce19fe26bf6096145b63aa":[1,0,1,45,4],
-"class_d_psim_1_1_simulation.html#a9339463ecdce19fe26bf6096145b63aa":[2,0,1,44,4],
-"class_d_psim_1_1_simulation.html#a968732193dd068cfafc56c37f68eb731":[1,0,1,45,111],
-"class_d_psim_1_1_simulation.html#a968732193dd068cfafc56c37f68eb731":[2,0,1,44,111],
-"class_d_psim_1_1_simulation.html#a96f4295268cb99ee414c94c7e99cd659":[1,0,1,45,101]
+"class_d_psim_1_1_simulation.html#a8fe485dd6b17bed2914b5d1a5ef14cd8":[1,0,1,45,20]
 };

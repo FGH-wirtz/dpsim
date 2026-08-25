@@ -1,5 +1,15 @@
 var NAVTREEINDEX50 =
 {
+"class_d_psim_1_1_gpu_magma_adapter.html#a8374eca1cb3a68dd309994516b372d4e":[2,0,1,17,8],
+"class_d_psim_1_1_gpu_magma_adapter.html#a8bd4bb1c02f44794c9e060d349f29cfb":[1,0,1,18,12],
+"class_d_psim_1_1_gpu_magma_adapter.html#a8bd4bb1c02f44794c9e060d349f29cfb":[2,0,1,17,12],
+"class_d_psim_1_1_gpu_magma_adapter.html#a900b12e4070081d2f977f2fa83f112ee":[1,0,1,18,18],
+"class_d_psim_1_1_gpu_magma_adapter.html#a900b12e4070081d2f977f2fa83f112ee":[2,0,1,17,18],
+"class_d_psim_1_1_gpu_magma_adapter.html#a98d0f540b307a6375285c97b025ced26":[1,0,1,18,21],
+"class_d_psim_1_1_gpu_magma_adapter.html#a98d0f540b307a6375285c97b025ced26":[2,0,1,17,21],
+"class_d_psim_1_1_gpu_magma_adapter.html#ad98a5bea3c7b0b5de3b91eea73495ee8":[1,0,1,18,14],
+"class_d_psim_1_1_gpu_magma_adapter.html#ad98a5bea3c7b0b5de3b91eea73495ee8":[2,0,1,17,14],
+"class_d_psim_1_1_gpu_magma_adapter.html#ada35ad16d488ffe7f4d1bfc7ba3f0318":[1,0,1,18,1],
 "class_d_psim_1_1_gpu_magma_adapter.html#ada35ad16d488ffe7f4d1bfc7ba3f0318":[2,0,1,17,1],
 "class_d_psim_1_1_gpu_magma_adapter.html#ae4bec67064c52206e26bc982a8e5b176":[1,0,1,18,9],
 "class_d_psim_1_1_gpu_magma_adapter.html#ae4bec67064c52206e26bc982a8e5b176":[2,0,1,17,9],
@@ -239,15 +249,5 @@ var NAVTREEINDEX50 =
 "class_d_psim_1_1_interface_worker.html#aa9c12820d821fadfaf7fe71e0b0580b1":[2,0,1,23,2],
 "class_d_psim_1_1_interface_worker.html#abfbb4ef86f17ed72b6c0df4023e622ee":[1,0,1,24,9],
 "class_d_psim_1_1_interface_worker.html#abfbb4ef86f17ed72b6c0df4023e622ee":[2,0,1,23,9],
-"class_d_psim_1_1_interface_worker.html#add460f2871afc571eecd7c6ac99d5c3a":[1,0,1,24,8],
-"class_d_psim_1_1_interface_worker.html#add460f2871afc571eecd7c6ac99d5c3a":[2,0,1,23,8],
-"class_d_psim_1_1_interface_worker_villas.html":[1,0,1,25],
-"class_d_psim_1_1_interface_worker_villas.html":[2,0,1,24],
-"class_d_psim_1_1_interface_worker_villas.html#a29259a404a37611d22f3f26b8c741ae3":[1,0,1,25,2],
-"class_d_psim_1_1_interface_worker_villas.html#a29259a404a37611d22f3f26b8c741ae3":[2,0,1,24,2],
-"class_d_psim_1_1_interface_worker_villas.html#a72cb1f35a612281678f1419cb701d5a6":[1,0,1,25,3],
-"class_d_psim_1_1_interface_worker_villas.html#a72cb1f35a612281678f1419cb701d5a6":[2,0,1,24,3],
-"class_d_psim_1_1_interface_worker_villas.html#a7fecbf348f751d0eeaca4a79bfd4a5cd":[1,0,1,25,6],
-"class_d_psim_1_1_interface_worker_villas.html#a7fecbf348f751d0eeaca4a79bfd4a5cd":[2,0,1,24,6],
-"class_d_psim_1_1_interface_worker_villas.html#a8d59a5ea17b86de4135f6dd4b1cc2287":[1,0,1,25,4]
+"class_d_psim_1_1_interface_worker.html#add460f2871afc571eecd7c6ac99d5c3a":[1,0,1,24,8]
 };
