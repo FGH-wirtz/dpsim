@@ -23,6 +23,7 @@ var class_d_psim_1_1_mna_solver_direct =
     [ "logSolveTime", "class_d_psim_1_1_mna_solver_direct.html#a25b12ac5846298dcede361487d3a48fb", null ],
     [ "logSystemMatrices", "class_d_psim_1_1_mna_solver_direct.html#a9c7a8060c3e470ed25e480df2ffecaaf", null ],
     [ "recomputeSystemMatrix", "class_d_psim_1_1_mna_solver_direct.html#a4af2e4bc579523971e00d989521c9ad6", null ],
+    [ "refreshStaticMatrixStamp", "class_d_psim_1_1_mna_solver_direct.html#a79a841b806646a4f119f014e4da7d734", null ],
     [ "setDirectLinearSolverConfiguration", "class_d_psim_1_1_mna_solver_direct.html#a6f08318fa3606f3bdeeb201a8f42c7a9", null ],
     [ "setDirectLinearSolverImplementation", "class_d_psim_1_1_mna_solver_direct.html#a84f847f2af857ad4c5be1ae8569ecabe", null ],
     [ "solve", "class_d_psim_1_1_mna_solver_direct.html#a407dddebb4e9027a76e818cfc15eb3ad", null ],

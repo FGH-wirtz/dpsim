@@ -70,6 +70,7 @@ var class_d_psim_1_1_simulation =
     [ "time", "class_d_psim_1_1_simulation.html#afa5e53478838f54d6729cdc419371dd5", null ],
     [ "timeStep", "class_d_psim_1_1_simulation.html#acc96470c2ae45007abb05ffe3fed2f23", null ],
     [ "timeStepCount", "class_d_psim_1_1_simulation.html#a31617132812f79061e7a87a2dd56252a", null ],
+    [ "updateTimeStep", "class_d_psim_1_1_simulation.html#aff909c039b1cb972661a4cecd9e18f5e", null ],
     [ "mDirectImpl", "class_d_psim_1_1_simulation.html#a91fbdd88ffcfa1685a16d94235fd9b95", null ],
     [ "mDirectLinearSolverConfiguration", "class_d_psim_1_1_simulation.html#a29d1f4ed2664f5a00032bbe19e71603f", null ],
     [ "mDomain", "class_d_psim_1_1_simulation.html#ad429ad413713b0a0da7c5bbf0a18456b", null ],

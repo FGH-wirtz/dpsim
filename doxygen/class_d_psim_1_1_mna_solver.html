@@ -144,6 +144,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae50040e3cddc92384ae8a54e0cc19478" id="r_ae50040e3cddc92384ae8a54e0cc19478"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="class_d_psim_1_1_m_n_a_state_space_extractor.html">MNAStateSpaceExtractor</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae50040e3cddc92384ae8a54e0cc19478">getStateSpaceExtractor</a> () const</td></tr>
 <tr class="memdesc:ae50040e3cddc92384ae8a54e0cc19478"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read-only access to the MNA state-space extractor.  <br /></td></tr>
 <tr class="separator:ae50040e3cddc92384ae8a54e0cc19478"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad89e0b99e7ea1d100b69dcc301b7bce9" id="r_ad89e0b99e7ea1d100b69dcc301b7bce9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespace_d_psim.html#aca275dbce4c75f8e270755c373b13d5d">UInt</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad89e0b99e7ea1d100b69dcc301b7bce9">updateTimeStep</a> (<a class="el" href="namespace_d_psim.html#a52dcbc3a0896b912333104eb61a7b29b">Real</a> timeStep) override</td></tr>
+<tr class="separator:ad89e0b99e7ea1d100b69dcc301b7bce9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_d_psim_1_1_solver"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_class_d_psim_1_1_solver')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_d_psim_1_1_solver.html">DPsim::Solver</a></td></tr>
 <tr class="memitem:a43f3a5b98bf07a364645fa5f8193a5e7 inherit pub_methods_class_d_psim_1_1_solver" id="r_a43f3a5b98bf07a364645fa5f8193a5e7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_d_psim_1_1_solver.html#a43f3a5b98bf07a364645fa5f8193a5e7">Solver</a> (<a class="el" href="namespace_d_psim.html#a66e48a625a26fd3c1d2198148f9d59e9">String</a> name, <a class="el" href="class_c_p_s_1_1_logger.html#a021e964d1ab0d217a05b95736d2ea804">CPS::Logger::Level</a> logLevel)</td></tr>
 <tr class="separator:a43f3a5b98bf07a364645fa5f8193a5e7 inherit pub_methods_class_d_psim_1_1_solver"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -289,6 +291,8 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:a5e1ed4449c74fcbfe4f68e8576aee3d4" id="r_a5e1ed4449c74fcbfe4f68e8576aee3d4"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5e1ed4449c74fcbfe4f68e8576aee3d4">log</a> (<a class="el" href="namespace_d_psim.html#a52dcbc3a0896b912333104eb61a7b29b">Real</a> time, <a class="el" href="namespace_d_psim.html#a6a29611b9912f8abc0545523b3f84f8c">Int</a> timeStepCount) override</td></tr>
 <tr class="memdesc:a5e1ed4449c74fcbfe4f68e8576aee3d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Logs left and right vector.  <br /></td></tr>
 <tr class="separator:a5e1ed4449c74fcbfe4f68e8576aee3d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac90e00fa64b9586a682853885a004cc3" id="r_ac90e00fa64b9586a682853885a004cc3"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac90e00fa64b9586a682853885a004cc3">refreshStaticMatrixStamp</a> ()</td></tr>
+<tr class="separator:ac90e00fa64b9586a682853885a004cc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae9a7432effa3574e0fcd91b20a6d65a6" id="r_ae9a7432effa3574e0fcd91b20a6d65a6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae9a7432effa3574e0fcd91b20a6d65a6">initializeComponents</a> ()</td></tr>
 <tr class="separator:ae9a7432effa3574e0fcd91b20a6d65a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f513a4a7805668edc0188c24371c0af" id="r_a5f513a4a7805668edc0188c24371c0af"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5f513a4a7805668edc0188c24371c0af">initializeComponents</a> ()</td></tr>
@@ -508,7 +512,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Constructor should not be called by users but by <a class="el" href="class_d_psim_1_1_simulation.html" title="The Simulation holds a SystemTopology and a Solver.">Simulation</a>. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00023">23</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00024">24</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -571,7 +575,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Assign simulation node index according to index in the vector. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00524">524</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00570">570</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -601,7 +605,7 @@ template&lt;typename VarType&gt; </div>
 </div><div class="memdoc">
 <p>Collects virtual nodes inside components. The MNA algorithm handles these nodes in the same way as network nodes. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00589">589</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00635">635</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -688,7 +692,7 @@ template&lt;typename VarType&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00568">568</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00614">614</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -715,7 +719,7 @@ template&lt;typename VarType&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00573">573</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00619">619</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -893,7 +897,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Enable or disable MNA state-space extraction. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00040">40</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00041">41</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -916,7 +920,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Read-only access to the MNA state-space extractor. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00046">46</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00092">92</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -951,7 +955,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented in <a class="el" href="class_d_psim_1_1_mna_solver_plugin.html#a0e287458a058ca0a34b2feac28535ca0">DPsim::MnaSolverPlugin&lt; VarType &gt;</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00765">765</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00811">811</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -982,7 +986,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Checks whether the status of variable MNA elements have changed. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00403">403</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00449">449</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1013,7 +1017,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Identify Nodes and SimPowerComps and SimSignalComps. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00478">478</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00524">524</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1049,7 +1053,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented in <a class="el" href="class_d_psim_1_1_mna_solver_plugin.html#afdb444e4c698ecac4fa68059cbf7624c">DPsim::MnaSolverPlugin&lt; VarType &gt;</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00054">54</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00100">100</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1105,7 +1109,7 @@ template&lt;typename VarType&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00177">177</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00223">223</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1132,7 +1136,7 @@ template&lt;typename VarType&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00216">216</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00262">262</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1163,7 +1167,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Initialization of state-space extraction. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00371">371</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00417">417</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1194,7 +1198,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Initialization of system matrices and source vector. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00273">273</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00319">319</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1225,7 +1229,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Initialization of system matrices and source vector. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00293">293</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00339">339</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1256,7 +1260,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Initialization of system matrices and source vector. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00313">313</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00359">359</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1287,7 +1291,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Initialization of system matrices and source vector. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00344">344</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00390">390</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1353,7 +1357,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented from <a class="el" href="class_d_psim_1_1_solver.html#ab809bab8e470b23d3fbedb056197eeb6">DPsim::Solver</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00811">811</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00857">857</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1388,6 +1392,38 @@ template&lt;typename VarType&gt; </div>
 
 </div>
 </div>
+<a id="ac90e00fa64b9586a682853885a004cc3" name="ac90e00fa64b9586a682853885a004cc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac90e00fa64b9586a682853885a004cc3">&#9670;&#160;</a></span>refreshStaticMatrixStamp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename VarType&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void <a class="el" href="class_d_psim_1_1_mna_solver.html">DPsim::MnaSolver</a>&lt; VarType &gt;::refreshStaticMatrixStamp </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel protected">protected</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Re-stamps what a timestep change invalidates without a variable component reporting it. </p>
+
+<p>Reimplemented in <a class="el" href="class_d_psim_1_1_mna_solver_direct.html#a79a841b806646a4f119f014e4da7d734">DPsim::MnaSolverDirect&lt; VarType &gt;</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8h_source.html#l00248">248</a> of file <a class="el" href="_m_n_a_solver_8h_source.html">MNASolver.h</a>.</p>
+
+</div>
+</div>
 <a id="a077d48c70718b3f3a69ae58a2646aa90" name="a077d48c70718b3f3a69ae58a2646aa90"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a077d48c70718b3f3a69ae58a2646aa90">&#9670;&#160;</a></span>resolveSystemMatrixRecomputationMode()</h2>
 
@@ -1415,7 +1451,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Resolve the requested system-matrix recomputation mode. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00423">423</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00469">469</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1475,7 +1511,7 @@ template&lt;typename VarType&gt; </div>
 
 <p>Reimplemented from <a class="el" href="class_d_psim_1_1_solver.html#a55d0b0fd08980de35d936ea167bf8a86">DPsim::Solver</a>.</p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00035">35</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00036">36</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1645,7 +1681,7 @@ template&lt;typename VarType&gt; </div>
 </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00661">661</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00707">707</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>
@@ -1822,7 +1858,39 @@ template&lt;typename VarType&gt; </div>
 
 <p>Collects the status of switches to select correct system matrix. </p>
 
-<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00416">416</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00462">462</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
+
+</div>
+</div>
+<a id="ad89e0b99e7ea1d100b69dcc301b7bce9" name="ad89e0b99e7ea1d100b69dcc301b7bce9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad89e0b99e7ea1d100b69dcc301b7bce9">&#9670;&#160;</a></span>updateTimeStep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename VarType&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespace_d_psim.html#aca275dbce4c75f8e270755c373b13d5d">UInt</a> <a class="el" href="class_d_psim_1_1_mna_solver.html">DPsim::MnaSolver</a>&lt; VarType &gt;::updateTimeStep </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespace_d_psim.html#a52dcbc3a0896b912333104eb61a7b29b">Real</a></td>          <td class="paramname"><span class="paramname"><em>timeStep</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel override">override</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Asks every component to re-derive its discretisation. Declining types are named in the log, since a stale discretisation still looks plausible. </p>
+
+<p>Reimplemented from <a class="el" href="class_d_psim_1_1_solver.html#a186809ea38c80ac5de427638618ea819">DPsim::Solver</a>.</p>
+
+<p class="definition">Definition at line <a class="el" href="_m_n_a_solver_8cpp_source.html#l00046">46</a> of file <a class="el" href="_m_n_a_solver_8cpp_source.html">MNASolver.cpp</a>.</p>
 
 </div>
 </div>

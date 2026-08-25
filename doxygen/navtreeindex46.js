@@ -1,5 +1,7 @@
 var NAVTREEINDEX46 =
 {
+"class_c_p_s_1_1_signal_1_1_voltage_controller_v_s_i.html#a616442c27168fa41779a9f5509ff8187":[1,0,0,5,37,22],
+"class_c_p_s_1_1_signal_1_1_voltage_controller_v_s_i.html#a616442c27168fa41779a9f5509ff8187":[2,0,0,5,37,22],
 "class_c_p_s_1_1_signal_1_1_voltage_controller_v_s_i.html#a6ed1217a8159cf47fb0c625322cd33ac":[1,0,0,5,37,10],
 "class_c_p_s_1_1_signal_1_1_voltage_controller_v_s_i.html#a6ed1217a8159cf47fb0c625322cd33ac":[2,0,0,5,37,10],
 "class_c_p_s_1_1_signal_1_1_voltage_controller_v_s_i.html#a72c142517377b6b7173d317ca11ba225":[1,0,0,5,37,32],
@@ -247,7 +249,5 @@ var NAVTREEINDEX46 =
 "class_c_p_s_1_1_sim_signal_comp.html#a4d407713350acb4eaa93049ca4960672":[1,0,0,45,7],
 "class_c_p_s_1_1_sim_signal_comp.html#a4d407713350acb4eaa93049ca4960672":[2,0,0,45,7],
 "class_c_p_s_1_1_sim_signal_comp.html#a80f942eb4781bf009cc6a2ce72c7ff53":[1,0,0,45,10],
-"class_c_p_s_1_1_sim_signal_comp.html#a80f942eb4781bf009cc6a2ce72c7ff53":[2,0,0,45,10],
-"class_c_p_s_1_1_sim_signal_comp.html#a854e17a6d4e3e9decaaceac82b61b9fe":[1,0,0,45,2],
-"class_c_p_s_1_1_sim_signal_comp.html#a854e17a6d4e3e9decaaceac82b61b9fe":[2,0,0,45,2]
+"class_c_p_s_1_1_sim_signal_comp.html#a80f942eb4781bf009cc6a2ce72c7ff53":[2,0,0,45,10]
 };

@@ -18,5 +18,6 @@ var class_c_p_s_1_1_m_n_a_interface =
     [ "mnaPreStep", "class_c_p_s_1_1_m_n_a_interface.html#a3613e89136e28aa3369d0606463f06e7", null ],
     [ "mnaTasks", "class_c_p_s_1_1_m_n_a_interface.html#a96a887a2ef3d82c277bc87d97adaa5f1", null ],
     [ "mnaUpdateCurrent", "class_c_p_s_1_1_m_n_a_interface.html#a0412c47ba97bbc82f9c06f9ea90c4536", null ],
+    [ "mnaUpdateTimeStep", "class_c_p_s_1_1_m_n_a_interface.html#af801b3748483cae8d5b387df75318a6c", null ],
     [ "mnaUpdateVoltage", "class_c_p_s_1_1_m_n_a_interface.html#aadd6fae66474b5c63b5156122c461605", null ]
 ];

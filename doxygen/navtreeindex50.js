@@ -1,5 +1,7 @@
 var NAVTREEINDEX50 =
 {
+"class_d_psim_1_1_gpu_magma_adapter.html#ada35ad16d488ffe7f4d1bfc7ba3f0318":[2,0,1,17,1],
+"class_d_psim_1_1_gpu_magma_adapter.html#ae4bec67064c52206e26bc982a8e5b176":[1,0,1,18,9],
 "class_d_psim_1_1_gpu_magma_adapter.html#ae4bec67064c52206e26bc982a8e5b176":[2,0,1,17,9],
 "class_d_psim_1_1_gpu_magma_adapter.html#aeb42e4b9f9ae3b4daf873429f188c705":[1,0,1,18,7],
 "class_d_psim_1_1_gpu_magma_adapter.html#aeb42e4b9f9ae3b4daf873429f188c705":[2,0,1,17,7],
@@ -247,7 +249,5 @@ var NAVTREEINDEX50 =
 "class_d_psim_1_1_interface_worker_villas.html#a72cb1f35a612281678f1419cb701d5a6":[2,0,1,24,3],
 "class_d_psim_1_1_interface_worker_villas.html#a7fecbf348f751d0eeaca4a79bfd4a5cd":[1,0,1,25,6],
 "class_d_psim_1_1_interface_worker_villas.html#a7fecbf348f751d0eeaca4a79bfd4a5cd":[2,0,1,24,6],
-"class_d_psim_1_1_interface_worker_villas.html#a8d59a5ea17b86de4135f6dd4b1cc2287":[1,0,1,25,4],
-"class_d_psim_1_1_interface_worker_villas.html#a8d59a5ea17b86de4135f6dd4b1cc2287":[2,0,1,24,4],
-"class_d_psim_1_1_interface_worker_villas.html#a8fb09e470c063559d7ac13c385a5a6bf":[1,0,1,25,1]
+"class_d_psim_1_1_interface_worker_villas.html#a8d59a5ea17b86de4135f6dd4b1cc2287":[1,0,1,25,4]
 };

@@ -1,5 +1,7 @@
 var NAVTREEINDEX49 =
 {
+"class_d_psim_1_1_data_logger_interface.html#a3cd6476ecb39ec48f8b097288c342808":[2,0,1,8,3],
+"class_d_psim_1_1_data_logger_interface.html#a59d83e4e5dbb6f8a5233b39c8b7a2b96":[1,0,1,9,4],
 "class_d_psim_1_1_data_logger_interface.html#a59d83e4e5dbb6f8a5233b39c8b7a2b96":[2,0,1,8,4],
 "class_d_psim_1_1_data_logger_interface.html#a5cd17a649372d2d67456b74df8f9d945":[1,0,1,9,9],
 "class_d_psim_1_1_data_logger_interface.html#a5cd17a649372d2d67456b74df8f9d945":[2,0,1,8,9],
@@ -247,7 +249,5 @@ var NAVTREEINDEX49 =
 "class_d_psim_1_1_gpu_magma_adapter.html#a98d0f540b307a6375285c97b025ced26":[2,0,1,17,21],
 "class_d_psim_1_1_gpu_magma_adapter.html#ad98a5bea3c7b0b5de3b91eea73495ee8":[1,0,1,18,14],
 "class_d_psim_1_1_gpu_magma_adapter.html#ad98a5bea3c7b0b5de3b91eea73495ee8":[2,0,1,17,14],
-"class_d_psim_1_1_gpu_magma_adapter.html#ada35ad16d488ffe7f4d1bfc7ba3f0318":[1,0,1,18,1],
-"class_d_psim_1_1_gpu_magma_adapter.html#ada35ad16d488ffe7f4d1bfc7ba3f0318":[2,0,1,17,1],
-"class_d_psim_1_1_gpu_magma_adapter.html#ae4bec67064c52206e26bc982a8e5b176":[1,0,1,18,9]
+"class_d_psim_1_1_gpu_magma_adapter.html#ada35ad16d488ffe7f4d1bfc7ba3f0318":[1,0,1,18,1]
 };

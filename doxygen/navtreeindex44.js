@@ -1,5 +1,7 @@
 var NAVTREEINDEX44 =
 {
+"class_c_p_s_1_1_signal_1_1_hydro_turbine_governor.html#a42a5d39612ed36bcb3961c5620455074":[1,0,0,5,21,3],
+"class_c_p_s_1_1_signal_1_1_hydro_turbine_governor.html#a42a5d39612ed36bcb3961c5620455074":[2,0,0,5,21,3],
 "class_c_p_s_1_1_signal_1_1_hydro_turbine_governor.html#a5e659539708569b33c47889dd13a2cd1":[1,0,0,5,21,0],
 "class_c_p_s_1_1_signal_1_1_hydro_turbine_governor.html#a5e659539708569b33c47889dd13a2cd1":[2,0,0,5,21,0],
 "class_c_p_s_1_1_signal_1_1_hydro_turbine_governor.html#a6f37acba61502e5ff47df41f5c431e7b":[1,0,0,5,21,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX44 =
 "class_c_p_s_1_1_signal_1_1_power_controller_v_s_i_1_1_pre_step.html#acf6c37e209be1e09059e5a40785e66cd":[1,0,0,5,25,0,0],
 "class_c_p_s_1_1_signal_1_1_power_controller_v_s_i_1_1_pre_step.html#acf6c37e209be1e09059e5a40785e66cd":[2,0,0,5,25,0,0],
 "class_c_p_s_1_1_signal_1_1_power_controller_v_s_i_1_1_pre_step.html#ad8d0b34db931b63cbe8d9e79fd8044c0":[1,0,0,5,25,0,1],
-"class_c_p_s_1_1_signal_1_1_power_controller_v_s_i_1_1_pre_step.html#ad8d0b34db931b63cbe8d9e79fd8044c0":[2,0,0,5,25,0,1],
-"class_c_p_s_1_1_signal_1_1_power_controller_v_s_i_1_1_step.html":[1,0,0,5,25,1],
-"class_c_p_s_1_1_signal_1_1_power_controller_v_s_i_1_1_step.html":[2,0,0,5,25,1]
+"class_c_p_s_1_1_signal_1_1_power_controller_v_s_i_1_1_pre_step.html#ad8d0b34db931b63cbe8d9e79fd8044c0":[2,0,0,5,25,0,1]
 };

@@ -1,5 +1,7 @@
 var NAVTREEINDEX48 =
 {
+"class_c_p_s_1_1_topological_signal_comp.html#af67a88cdc55bae6c936850b733d196fe":[1,0,0,52,0],
+"class_c_p_s_1_1_topological_signal_comp.html#af67a88cdc55bae6c936850b733d196fe":[2,0,0,52,0],
 "class_c_p_s_1_1_topological_terminal.html":[1,0,0,53],
 "class_c_p_s_1_1_topological_terminal.html":[2,0,0,53],
 "class_c_p_s_1_1_topological_terminal.html#a025cf634f597ceaf0c55312e3f8a03dd":[1,0,0,53,15],
@@ -247,7 +249,5 @@ var NAVTREEINDEX48 =
 "class_d_psim_1_1_data_logger_interface.html#a36cf6856b7123eaa445c699bb79c429c":[2,0,1,8,2],
 "class_d_psim_1_1_data_logger_interface.html#a36dcf22d169fd43255d309a39f94e4f8":[1,0,1,9,7],
 "class_d_psim_1_1_data_logger_interface.html#a36dcf22d169fd43255d309a39f94e4f8":[2,0,1,8,7],
-"class_d_psim_1_1_data_logger_interface.html#a3cd6476ecb39ec48f8b097288c342808":[1,0,1,9,3],
-"class_d_psim_1_1_data_logger_interface.html#a3cd6476ecb39ec48f8b097288c342808":[2,0,1,8,3],
-"class_d_psim_1_1_data_logger_interface.html#a59d83e4e5dbb6f8a5233b39c8b7a2b96":[1,0,1,9,4]
+"class_d_psim_1_1_data_logger_interface.html#a3cd6476ecb39ec48f8b097288c342808":[1,0,1,9,3]
 };

@@ -4,14 +4,16 @@ var NAVTREEINDEX34 =
 "class_c_p_s_1_1_m_n_a_interface.html#a99daa13babcb894a6f878fc889faa0a7":[2,0,0,30,0],
 "class_c_p_s_1_1_m_n_a_interface.html#aa583b6d80d2ff9a01dab0446698a8cad":[1,0,0,30,12],
 "class_c_p_s_1_1_m_n_a_interface.html#aa583b6d80d2ff9a01dab0446698a8cad":[2,0,0,30,12],
-"class_c_p_s_1_1_m_n_a_interface.html#aadd6fae66474b5c63b5156122c461605":[1,0,0,30,18],
-"class_c_p_s_1_1_m_n_a_interface.html#aadd6fae66474b5c63b5156122c461605":[2,0,0,30,18],
+"class_c_p_s_1_1_m_n_a_interface.html#aadd6fae66474b5c63b5156122c461605":[1,0,0,30,19],
+"class_c_p_s_1_1_m_n_a_interface.html#aadd6fae66474b5c63b5156122c461605":[2,0,0,30,19],
 "class_c_p_s_1_1_m_n_a_interface.html#aca665eb0006e91958366aefca2863ee0":[1,0,0,30,13],
 "class_c_p_s_1_1_m_n_a_interface.html#aca665eb0006e91958366aefca2863ee0":[2,0,0,30,13],
 "class_c_p_s_1_1_m_n_a_interface.html#adb882f75b0d0a49bb81b7674394b8420":[1,0,0,30,8],
 "class_c_p_s_1_1_m_n_a_interface.html#adb882f75b0d0a49bb81b7674394b8420":[2,0,0,30,8],
 "class_c_p_s_1_1_m_n_a_interface.html#ae0ae005f7e53b1d5c27f508149a0da2e":[1,0,0,30,1],
 "class_c_p_s_1_1_m_n_a_interface.html#ae0ae005f7e53b1d5c27f508149a0da2e":[2,0,0,30,1],
+"class_c_p_s_1_1_m_n_a_interface.html#af801b3748483cae8d5b387df75318a6c":[1,0,0,30,18],
+"class_c_p_s_1_1_m_n_a_interface.html#af801b3748483cae8d5b387df75318a6c":[2,0,0,30,18],
 "class_c_p_s_1_1_m_n_a_sim_power_comp.html":[1,0,0,31],
 "class_c_p_s_1_1_m_n_a_sim_power_comp.html":[2,0,0,31],
 "class_c_p_s_1_1_m_n_a_sim_power_comp.html#a0da06b857423f40b6a8143e5a5abff3d":[1,0,0,31,26],
@@ -247,7 +249,5 @@ var NAVTREEINDEX34 =
 "class_c_p_s_1_1_math.html#a8cc7d0a2235e8225a30cc427ede79021":[1,0,0,29,17],
 "class_c_p_s_1_1_math.html#a8cc7d0a2235e8225a30cc427ede79021":[2,0,0,29,17],
 "class_c_p_s_1_1_math.html#a9ad2fde4fa185dcde2c973c5406f3142":[1,0,0,29,27],
-"class_c_p_s_1_1_math.html#a9ad2fde4fa185dcde2c973c5406f3142":[2,0,0,29,27],
-"class_c_p_s_1_1_math.html#a9c3dbc3fcd1ce9eb3266db93b4966b58":[1,0,0,29,0],
-"class_c_p_s_1_1_math.html#a9c3dbc3fcd1ce9eb3266db93b4966b58":[2,0,0,29,0]
+"class_c_p_s_1_1_math.html#a9ad2fde4fa185dcde2c973c5406f3142":[2,0,0,29,27]
 };
