@@ -155,6 +155,14 @@ void DP::Ph1::Switch::closeSwitch() {
   resetZeroCrossingTime();
   mResetZeroCrossingHistory = false;
 
+  if (mSwitchingMode == SwitchingMode::CurrentZero) {
+    setPoleClosed(true);
+    resetExponentialTransition();
+
+    SPDLOG_LOGGER_INFO(mSLog, "DP switch closing command: pole closed.");
+    return;
+  }
+
   if (mSwitchingMode != SwitchingMode::ExponentialZCSEmulation) {
     **mPoleClosed = true;
     resetExponentialTransition();
@@ -282,6 +290,43 @@ Bool DP::Ph1::Switch::supportsPrecomputedSystemMatrices() const {
   return mSwitchingMode == SwitchingMode::Ideal;
 }
 
+Bool DP::Ph1::Switch::requestsQuadratureCorrection() const {
+  // Only the current-zero mode leaves a quadrature part behind. Ideal switching
+  // is unchanged by design, and the exponential ramp already avoids the
+  // discontinuity, so correcting at the end of its ramp would reintroduce one.
+  return mSwitchingMode == SwitchingMode::CurrentZero;
+}
+
+Bool DP::Ph1::Switch::takeSwitchingEvent() {
+  const Bool pending = mSwitchingEventPending;
+  mSwitchingEventPending = false;
+  return pending;
+}
+
+std::vector<MNASwitchInterface::SwitchedPole>
+DP::Ph1::Switch::takeSwitchedPoles() {
+  if (!mSwitchedPolePending)
+    return {};
+  mSwitchedPolePending = false;
+
+  // An opening pole turns in the post-step after the current is updated, so
+  // the interface current is still the one the closed pole carried. The
+  // voltage is read from the nodes, which hold the previous step until the
+  // solver updates them, because a closing pole turns before the step and the
+  // post-step that would update the interface voltage may be scheduled out.
+  SwitchedPole pole;
+  pole.node0 = terminalNotGrounded(0) ? matrixNodeIndex(0) : -1;
+  pole.node1 = terminalNotGrounded(1) ? matrixNodeIndex(1) : -1;
+  pole.closedConductance = 1. / **mClosedResistance;
+  pole.openConductance = 1. / **mOpenResistance;
+  pole.closed = **mPoleClosed;
+  pole.current = (**mIntfCurrent)(0, 0);
+  pole.zeroTime = **mZeroCrossingTime;
+  pole.voltage =
+      mTerminals[1]->singleVoltage() - mTerminals[0]->singleVoltage();
+  return {pole};
+}
+
 void DP::Ph1::Switch::mnaCompUpdateVoltage(const Matrix &leftVector) {
   // Voltage across component is defined as V1 - V0
   (**mIntfVoltage)(0, 0) = 0;
@@ -304,6 +349,7 @@ void DP::Ph1::Switch::mnaCompAddPostStepDependencies(
     AttributeBase::List &modifiedAttributes,
     Attribute<Matrix>::Ptr &leftVector) {
 
+  prevStepDependencies.push_back(mPoleClosed);
   attributeDependencies.push_back(leftVector);
   modifiedAttributes.push_back(mIntfVoltage);
   modifiedAttributes.push_back(mIntfCurrent);
@@ -365,6 +411,13 @@ Bool DP::Ph1::Switch::hasParameterChanged() {
 }
 
 void DP::Ph1::Switch::setPoleClosed(Bool closed) {
+  // Recorded where the pole actually turns, so it is independent of which
+  // solver path runs and of hasParameterChanged() having consumed the change.
+  if (**mPoleClosed != closed) {
+    mSwitchingEventPending = true;
+    mSwitchedPolePending = true;
+  }
+
   **mPoleClosed = closed;
 
   // Keep the resistance diagnostics synchronized with the discrete

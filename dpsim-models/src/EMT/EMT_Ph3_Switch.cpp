@@ -274,6 +274,17 @@ void EMT::Ph3::Switch::mnaCompInitialize(Real omega, Real timeStep,
   mResetZeroCrossingHistory = false;
 }
 
+void EMT::Ph3::Switch::closePole(UInt phase) {
+  if (mSwitchingMode != SwitchingMode::CurrentZero)
+    throw std::logic_error(
+        "EMT::Ph3::Switch::closePole() requires the CurrentZero mode.");
+
+  **mOpeningRequested = false;
+  setPoleClosed(phase, true);
+  if (allPolesClosed())
+    **mIsClosed = true;
+}
+
 Bool EMT::Ph3::Switch::mnaIsClosed() {
   if (mSwitchingMode == SwitchingMode::Ideal)
     return **mIsClosed;
@@ -321,6 +332,9 @@ void EMT::Ph3::Switch::mnaCompAddPostStepDependencies(
     AttributeBase::List &attributeDependencies,
     AttributeBase::List &modifiedAttributes,
     Attribute<Matrix>::Ptr &leftVector) {
+  prevStepDependencies.push_back(mPoleClosedA);
+  prevStepDependencies.push_back(mPoleClosedB);
+  prevStepDependencies.push_back(mPoleClosedC);
   attributeDependencies.push_back(leftVector);
 
   modifiedAttributes.push_back(mIntfVoltage);

@@ -196,3 +196,49 @@ void DP::Ph3::Capacitor::mnaCompUpdateVoltage(const Matrix &leftVector) {
 void DP::Ph3::Capacitor::mnaCompUpdateCurrent(const Matrix &leftVector) {
   **mIntfCurrent = mEquivCond * **mIntfVoltage + mEquivCurrent;
 }
+
+// #### Quadrature correction ####
+
+UInt DP::Ph3::Capacitor::mnaCorrectionStateCount() { return 3; }
+
+CPS::MNAQuadratureCorrectionInterface<Complex>::StateKind
+DP::Ph3::Capacitor::mnaCorrectionStateKind() {
+  return StateKind::CapacitorVoltage;
+}
+
+Complex DP::Ph3::Capacitor::mnaCorrectionAdmittance(UInt index) {
+  return mEquivCond(index, index);
+}
+
+Complex DP::Ph3::Capacitor::mnaCorrectionState(UInt index) {
+  return (**mIntfVoltage)(index, 0);
+}
+
+void DP::Ph3::Capacitor::mnaCorrectionSetState(UInt index, Complex value) {
+  (**mIntfVoltage)(index, 0) = value;
+}
+
+Real DP::Ph3::Capacitor::mnaCorrectionElementValue(UInt index) {
+  return (**mCapacitance)(index, index);
+}
+
+Complex DP::Ph3::Capacitor::mnaCorrectionCouplingAdmittance(UInt row,
+                                                            UInt col) {
+  return mEquivCond(row, col);
+}
+
+Real DP::Ph3::Capacitor::mnaCorrectionCouplingElement(UInt row, UInt col) {
+  return (**mCapacitance)(row, col);
+}
+
+void DP::Ph3::Capacitor::mnaCorrectionNodes(UInt index, Int &node0,
+                                            Int &node1) {
+  node0 = terminalNotGrounded(0) ? static_cast<Int>(matrixNodeIndex(0, index))
+                                 : -1;
+  node1 = terminalNotGrounded(1) ? static_cast<Int>(matrixNodeIndex(1, index))
+                                 : -1;
+}
+
+void DP::Ph3::Capacitor::mnaCorrectionRebuildRightVector() {
+  mnaCompApplyRightSideVectorStamp(**mRightVector);
+}

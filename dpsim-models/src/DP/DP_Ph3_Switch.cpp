@@ -263,6 +263,8 @@ void DP::Ph3::Switch::mnaCompInitialize(Real omega, Real timeStep,
   setAllPoles(**mIsClosed);
   synchronizeEffectiveResistance(**mIsClosed);
   resetExponentialTransition();
+  // Setting up the initial state is not a closing
+  mSwitchedPolePending = {{false, false, false}};
 
   mPoleClosedPrev = {{
       **mPoleClosedA,
@@ -288,6 +290,17 @@ void DP::Ph3::Switch::mnaCompInitialize(Real omega, Real timeStep,
   mResetZeroCrossingHistory = false;
 }
 
+void DP::Ph3::Switch::closePole(UInt phase) {
+  if (mSwitchingMode != SwitchingMode::CurrentZero)
+    throw std::logic_error(
+        "DP::Ph3::Switch::closePole() requires the CurrentZero mode.");
+
+  **mOpeningRequested = false;
+  setPoleClosed(phase, true);
+  if (allPolesClosed())
+    **mIsClosed = true;
+}
+
 Bool DP::Ph3::Switch::mnaIsClosed() {
   if (mSwitchingMode == SwitchingMode::Ideal)
     return **mIsClosed;
@@ -297,6 +310,57 @@ Bool DP::Ph3::Switch::mnaIsClosed() {
 
 Bool DP::Ph3::Switch::supportsPrecomputedSystemMatrices() const {
   return mSwitchingMode == SwitchingMode::Ideal;
+}
+
+Bool DP::Ph3::Switch::requestsQuadratureCorrection() const {
+  // Only the current-zero mode leaves a quadrature part behind. Ideal switching
+  // is unchanged by design, and the exponential ramp already avoids the
+  // discontinuity, so correcting at the end of its ramp would reintroduce one.
+  return mSwitchingMode == SwitchingMode::CurrentZero;
+}
+
+Bool DP::Ph3::Switch::takeSwitchingEvent() {
+  const Bool pending = mSwitchingEventPending;
+  mSwitchingEventPending = false;
+  return pending;
+}
+
+std::vector<MNASwitchInterface::SwitchedPole>
+DP::Ph3::Switch::takeSwitchedPoles() {
+  std::vector<SwitchedPole> poles;
+
+  for (UInt phase = 0; phase < 3; ++phase) {
+    if (!mSwitchedPolePending[phase])
+      continue;
+    mSwitchedPolePending[phase] = false;
+
+    if ((**mClosedResistance).rows() < 3 || (**mOpenResistance).rows() < 3)
+      continue;
+
+    // An opening pole turns in the post-step after the current is updated, so
+    // the interface current is still the one the closed pole carried. The
+    // voltage is read from the nodes, which hold the previous step until the
+    // solver updates them, because a closing pole turns before the step and
+    // the post-step that would update the interface voltage may be scheduled
+    // out.
+    SwitchedPole pole;
+    pole.node0 = terminalNotGrounded(0) ? matrixNodeIndex(0, phase) : -1;
+    pole.node1 = terminalNotGrounded(1) ? matrixNodeIndex(1, phase) : -1;
+    pole.closedConductance = 1. / (**mClosedResistance)(phase, phase);
+    pole.openConductance = 1. / (**mOpenResistance)(phase, phase);
+    pole.closed = poleClosed(phase);
+    pole.current = (**mIntfCurrent)(phase, 0);
+    pole.zeroTime = phase == 0   ? **mZeroCrossingTimeA
+                    : phase == 1 ? **mZeroCrossingTimeB
+                                 : **mZeroCrossingTimeC;
+    for (UInt terminal = 0; terminal < 2; ++terminal)
+      if (terminalNotGrounded(terminal))
+        pole.voltage += (terminal == 1 ? 1.0 : -1.0) *
+                        (**mTerminals[terminal]->node()->mVoltage)(phase, 0);
+    poles.push_back(pole);
+  }
+
+  return poles;
 }
 
 void DP::Ph3::Switch::mnaCompApplySystemMatrixStamp(
@@ -327,6 +391,9 @@ void DP::Ph3::Switch::mnaCompAddPostStepDependencies(
     AttributeBase::List &attributeDependencies,
     AttributeBase::List &modifiedAttributes,
     Attribute<Matrix>::Ptr &leftVector) {
+  prevStepDependencies.push_back(mPoleClosedA);
+  prevStepDependencies.push_back(mPoleClosedB);
+  prevStepDependencies.push_back(mPoleClosedC);
   attributeDependencies.push_back(leftVector);
 
   modifiedAttributes.push_back(mIntfVoltage);
@@ -456,6 +523,13 @@ Bool DP::Ph3::Switch::poleClosed(UInt phase) const {
 }
 
 void DP::Ph3::Switch::setPoleClosed(UInt phase, Bool closed) {
+  // Recorded where the pole actually turns, so a later pole is seen even though
+  // mnaIsClosed() stops changing after the first one.
+  if (phase < 3 && poleClosed(phase) != closed) {
+    mSwitchingEventPending = true;
+    mSwitchedPolePending[phase] = true;
+  }
+
   switch (phase) {
   case 0:
     **mPoleClosedA = closed;
@@ -480,6 +554,12 @@ void DP::Ph3::Switch::setPoleClosed(UInt phase, Bool closed) {
 }
 
 void DP::Ph3::Switch::setAllPoles(Bool closed) {
+  for (UInt phase = 0; phase < 3; ++phase)
+    if (poleClosed(phase) != closed) {
+      mSwitchingEventPending = true;
+      mSwitchedPolePending[phase] = true;
+    }
+
   **mPoleClosedA = closed;
   **mPoleClosedB = closed;
   **mPoleClosedC = closed;

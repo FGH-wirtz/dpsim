@@ -77,6 +77,30 @@ void DP::Ph3::SynchronGeneratorDQ::initialize(Matrix frequencies) {
   **mIntfCurrent = mBase_I * dq0ToAbcTransform(mThetaMech, mIdq0);
 }
 
+void DP::Ph3::SynchronGeneratorDQ::mnaApplyEventStamp(SparseMatrixRow &matrix,
+                                                      Real omega) {
+  if (!terminalNotGrounded(0))
+    return;
+
+  // Subtransient inductances in per unit: the leakage inductance plus the
+  // mutual inductance in parallel with the rotor windings of each axis
+  const Real lpdd = **mLl + 1. / (1. / mLmd + 1. / mLlfd + 1. / mLlkd);
+  Real lpqq = **mLl + 1. / (1. / mLmq + 1. / mLlkq1);
+  if (mNumDampingWindings == 2)
+    lpqq = **mLl + 1. / (1. / mLmq + 1. / mLlkq1 + 1. / mLlkq2);
+  const Real inductance = 0.5 * (lpdd + lpqq) * mBase_L;
+  const Real resistance = **mRs * mBase_Z;
+
+  // Admittance of the series RL branch at omega
+  Complex admittance = 1. / Complex(resistance, omega * inductance);
+  if (mCompensationOn)
+    admittance -= Complex(1. / mRcomp, 0);
+
+  for (UInt phase = 0; phase < 3; ++phase)
+    Math::addToMatrixElement(matrix, matrixNodeIndices(0)[phase],
+                             matrixNodeIndices(0)[phase], admittance);
+}
+
 void DP::Ph3::SynchronGeneratorDQ::mnaCompApplySystemMatrixStamp(
     SparseMatrixRow &systemMatrix) {
   if (!mCompensationOn)

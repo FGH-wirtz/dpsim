@@ -99,6 +99,7 @@ public:
 
   void openSwitch() override;
   void closeSwitch() override;
+  void closePole(UInt phase);
 
   // #### General ####
   void initializeFromNodesAndTerminals(Real frequency) override;
@@ -129,6 +130,10 @@ public:
                                            Int freqIdx) override;
 
   Bool supportsPrecomputedSystemMatrices() const override;
+  /// True for the current-zero mode, which needs the quadrature correction
+  Bool requestsQuadratureCorrection() const override;
+  Bool takeSwitchingEvent() override;
+  std::vector<SwitchedPole> takeSwitchedPoles() override;
 
   // #### Variable-component interface ####
   Bool hasParameterChanged() override;
@@ -144,6 +149,11 @@ private:
   Real mShiftOmega = 0.0;
 
   std::array<Bool, 3> mPoleClosedPrev{{false, false, false}};
+  /// Set when any pole actually changed, cleared by
+  /// takeSwitchingEvent()
+  Bool mSwitchingEventPending = false;
+  /// Set per pole when it opened or closed, cleared by takeSwitchedPoles()
+  std::array<Bool, 3> mSwitchedPolePending{{false, false, false}};
   std::array<Real, 3> mEffectiveResistancePrev{{0.0, 0.0, 0.0}};
 
   Matrix mPreviousInstantaneousCurrent = Matrix::Zero(3, 1);

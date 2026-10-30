@@ -10,6 +10,7 @@
 
 #include <dpsim-models/Base/Base_Ph1_Capacitor.h>
 #include <dpsim-models/MNASimPowerComp.h>
+#include <dpsim-models/Solver/MNAQuadratureCorrectionInterface.h>
 
 namespace CPS {
 namespace DP {
@@ -23,6 +24,7 @@ namespace Ph1 {
 /// frequency and the current source changes for each iteration.
 class Capacitor : public MNASimPowerComp<Complex>,
                   public Base::Ph1::Capacitor,
+                  public MNAQuadratureCorrectionInterface<Complex>,
                   public SharedFactory<Capacitor> {
 protected:
   /// DC equivalent current source for harmonics [A]
@@ -31,6 +33,13 @@ protected:
   MatrixComp mEquivCond;
   /// Coefficient in front of previous voltage value for harmonics
   MatrixComp mPrevVoltCoeff;
+  /// Coefficient in front of the previous current value, zero under backward
+  /// Euler
+  MatrixComp mPrevCurrCoeff;
+  /// Rule the companion model is currently derived with
+  IntegrationRule mIntegrationRule = IntegrationRule::Trapezoidal;
+  ///
+  void initVars(Real timeStep);
 
 public:
   /// Defines UID, name and logging level
@@ -42,6 +51,9 @@ public:
 
   SimPowerComp<Complex>::Ptr clone(String name) override;
 
+  /// Re-derives the companion model for the given rule
+  bool mnaSetIntegrationRule(IntegrationRule rule, Real timeStep) override;
+
   // #### General ####
   /// Initializes component from power flow data
   void initializeFromNodesAndTerminals(Real frequency) override;
@@ -51,6 +63,22 @@ public:
   // #### MNA section ####
   /// Return single-frequency MNA companion conductance.
   Complex getMNAConductance() const;
+
+  // #### Quadrature correction ####
+  /// The capacitor contributes a terminal voltage.
+  StateKind mnaCorrectionStateKind() override;
+  /// Stamped companion admittance at the fundamental frequency.
+  Complex mnaCorrectionAdmittance(UInt index) override;
+  /// Terminal voltage envelope
+  Complex mnaCorrectionState(UInt index) override;
+  ///
+  void mnaCorrectionSetState(UInt index, Complex value) override;
+  ///
+  Real mnaCorrectionElementValue(UInt index) override;
+  ///
+  void mnaCorrectionNodes(UInt index, Int &node0, Int &node1) override;
+  /// Recompute the equivalent current source from the present state
+  void mnaCorrectionRebuildRightVector() override;
   /// Initializes internal variables of the component
   void mnaCompInitialize(Real omega, Real timeStep,
                          Attribute<Matrix>::Ptr leftVector) override;

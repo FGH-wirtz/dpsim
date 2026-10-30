@@ -131,6 +131,10 @@ public:
                                            Int freqIdx) override;
 
   Bool supportsPrecomputedSystemMatrices() const override;
+  /// True for the current-zero mode, which needs the quadrature correction
+  Bool requestsQuadratureCorrection() const override;
+  Bool takeSwitchingEvent() override;
+  std::vector<SwitchedPole> takeSwitchedPoles() override;
 
   // #### MNA section for variable component ####
   Bool hasParameterChanged() override;
@@ -146,6 +150,10 @@ private:
   Real mShiftOmega = 0.0;
 
   Bool mPoleClosedPrev = false;
+  /// Set when a pole actually changed, cleared by takeSwitchingEvent()
+  Bool mSwitchingEventPending = false;
+  /// Set when the pole opened or closed, cleared by takeSwitchedPoles()
+  Bool mSwitchedPolePending = false;
   Real mEffectiveResistancePrev = 0.0;
 
   Real mPreviousInstantaneousCurrent = 0.0;

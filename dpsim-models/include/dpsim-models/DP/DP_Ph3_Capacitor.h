@@ -11,6 +11,7 @@
 #include <dpsim-models/Base/Base_Ph3_Capacitor.h>
 #include <dpsim-models/MNASimPowerComp.h>
 #include <dpsim-models/Solver/MNAInterface.h>
+#include <dpsim-models/Solver/MNAQuadratureCorrectionInterface.h>
 
 namespace CPS {
 namespace DP {
@@ -24,6 +25,7 @@ namespace Ph3 {
 /// frequency and the current source changes for each iteration.
 class Capacitor : public MNASimPowerComp<Complex>,
                   public Base::Ph3::Capacitor,
+                  public MNAQuadratureCorrectionInterface<Complex>,
                   public SharedFactory<Capacitor> {
 protected:
   /// DC equivalent current source [A]
@@ -77,6 +79,26 @@ public:
                                  AttributeBase::List &attributeDependencies,
                                  AttributeBase::List &modifiedAttributes,
                                  Attribute<Matrix>::Ptr &leftVector) override;
+
+  // #### Quadrature correction ####
+  /// One state per phase
+  UInt mnaCorrectionStateCount() override;
+  ///
+  StateKind mnaCorrectionStateKind() override;
+  ///
+  Complex mnaCorrectionAdmittance(UInt index) override;
+  ///
+  Complex mnaCorrectionState(UInt index) override;
+  ///
+  void mnaCorrectionSetState(UInt index, Complex value) override;
+  ///
+  Real mnaCorrectionElementValue(UInt index) override;
+  Complex mnaCorrectionCouplingAdmittance(UInt row, UInt col) override;
+  Real mnaCorrectionCouplingElement(UInt row, UInt col) override;
+  ///
+  void mnaCorrectionNodes(UInt index, Int &node0, Int &node1) override;
+  ///
+  void mnaCorrectionRebuildRightVector() override;
 };
 } // namespace Ph3
 } // namespace DP

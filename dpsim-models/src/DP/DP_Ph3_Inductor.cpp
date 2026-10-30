@@ -238,3 +238,47 @@ void DP::Ph3::Inductor::mnaTearPostStep(MatrixComp voltage,
   **mIntfVoltage = voltage;
   **mIntfCurrent = mEquivCond * voltage + mEquivCurrent;
 }
+
+// #### Quadrature correction ####
+
+UInt DP::Ph3::Inductor::mnaCorrectionStateCount() { return 3; }
+
+CPS::MNAQuadratureCorrectionInterface<Complex>::StateKind
+DP::Ph3::Inductor::mnaCorrectionStateKind() {
+  return StateKind::InductorCurrent;
+}
+
+Complex DP::Ph3::Inductor::mnaCorrectionAdmittance(UInt index) {
+  return mEquivCond(index, index);
+}
+
+Complex DP::Ph3::Inductor::mnaCorrectionState(UInt index) {
+  return (**mIntfCurrent)(index, 0);
+}
+
+void DP::Ph3::Inductor::mnaCorrectionSetState(UInt index, Complex value) {
+  (**mIntfCurrent)(index, 0) = value;
+}
+
+Real DP::Ph3::Inductor::mnaCorrectionElementValue(UInt index) {
+  return (**mInductance)(index, index);
+}
+
+Complex DP::Ph3::Inductor::mnaCorrectionCouplingAdmittance(UInt row, UInt col) {
+  return mEquivCond(row, col);
+}
+
+Real DP::Ph3::Inductor::mnaCorrectionCouplingElement(UInt row, UInt col) {
+  return (**mInductance)(row, col);
+}
+
+void DP::Ph3::Inductor::mnaCorrectionNodes(UInt index, Int &node0, Int &node1) {
+  node0 = terminalNotGrounded(0) ? static_cast<Int>(matrixNodeIndex(0, index))
+                                 : -1;
+  node1 = terminalNotGrounded(1) ? static_cast<Int>(matrixNodeIndex(1, index))
+                                 : -1;
+}
+
+void DP::Ph3::Inductor::mnaCorrectionRebuildRightVector() {
+  mnaCompApplyRightSideVectorStamp(**mRightVector);
+}

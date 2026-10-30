@@ -31,6 +31,7 @@ void DP::Ph1::Inductor::initialize(Matrix frequencies) {
   mEquivCurrent = MatrixComp::Zero(mNumFreqs, 1);
   mEquivCond = MatrixComp::Zero(mNumFreqs, 1);
   mPrevCurrFac = MatrixComp::Zero(mNumFreqs, 1);
+  mPrevVoltFac = MatrixComp::Zero(mNumFreqs, 1);
 }
 
 Complex DP::Ph1::Inductor::getMNAConductance() const {
@@ -66,23 +67,49 @@ void DP::Ph1::Inductor::initializeFromNodesAndTerminals(Real frequency) {
 
 void DP::Ph1::Inductor::initVars(Real timeStep) {
   for (UInt freq = 0; freq < mNumFreqs; freq++) {
-    Real a = timeStep / (2. * **mInductance);
-    Real b = timeStep * 2. * PI * mFrequencies(freq, 0) / 2.;
+    Real omega = 2. * PI * mFrequencies(freq, 0);
 
-    Real equivCondReal = a / (1. + b * b);
-    Real equivCondImag = -a * b / (1. + b * b);
-    mEquivCond(freq, 0) = {equivCondReal, equivCondImag};
-    Real preCurrFracReal = (1. - b * b) / (1. + b * b);
-    Real preCurrFracImag = (-2. * b) / (1. + b * b);
-    mPrevCurrFac(freq, 0) = {preCurrFracReal, preCurrFracImag};
+    if (mIntegrationRule == IntegrationRule::BackwardEuler) {
+      Real a = timeStep / **mInductance;
+      Real b = omega * timeStep;
+
+      mEquivCond(freq, 0) = {a / (1. + b * b), -a * b / (1. + b * b)};
+      mPrevCurrFac(freq, 0) = {1. / (1. + b * b), -b / (1. + b * b)};
+      mPrevVoltFac(freq, 0) = {0., 0.};
+    } else {
+      Real a = timeStep / (2. * **mInductance);
+      Real b = omega * timeStep / 2.;
+
+      Real equivCondReal = a / (1. + b * b);
+      Real equivCondImag = -a * b / (1. + b * b);
+      mEquivCond(freq, 0) = {equivCondReal, equivCondImag};
+      Real preCurrFracReal = (1. - b * b) / (1. + b * b);
+      Real preCurrFracImag = (-2. * b) / (1. + b * b);
+      mPrevCurrFac(freq, 0) = {preCurrFracReal, preCurrFracImag};
+      mPrevVoltFac(freq, 0) = mEquivCond(freq, 0);
+    }
 
     // In steady-state, these variables should not change
-    mEquivCurrent(freq, 0) = mEquivCond(freq, 0) * (**mIntfVoltage)(0, freq) +
+    mEquivCurrent(freq, 0) = mPrevVoltFac(freq, 0) * (**mIntfVoltage)(0, freq) +
                              mPrevCurrFac(freq, 0) * (**mIntfCurrent)(0, freq);
     (**mIntfCurrent)(0, freq) =
         mEquivCond(freq, 0) * (**mIntfVoltage)(0, freq) +
         mEquivCurrent(freq, 0);
   }
+}
+
+bool DP::Ph1::Inductor::mnaSetIntegrationRule(IntegrationRule rule,
+                                              Real timeStep) {
+  if (rule == mIntegrationRule)
+    return true;
+
+  mIntegrationRule = rule;
+
+  // initVars() also resets the interface current, which is the state here
+  MatrixComp current = **mIntfCurrent;
+  initVars(timeStep);
+  **mIntfCurrent = current;
+  return true;
 }
 
 void DP::Ph1::Inductor::mnaCompInitialize(Real omega, Real timeStep,
@@ -134,7 +161,7 @@ void DP::Ph1::Inductor::mnaCompApplySystemMatrixStampHarm(
 void DP::Ph1::Inductor::mnaCompApplyRightSideVectorStamp(Matrix &rightVector) {
   for (UInt freq = 0; freq < mNumFreqs; freq++) {
     // Calculate equivalent current source for next time step
-    mEquivCurrent(freq, 0) = mEquivCond(freq, 0) * (**mIntfVoltage)(0, freq) +
+    mEquivCurrent(freq, 0) = mPrevVoltFac(freq, 0) * (**mIntfVoltage)(0, freq) +
                              mPrevCurrFac(freq, 0) * (**mIntfCurrent)(0, freq);
 
     if (terminalNotGrounded(0))
@@ -287,4 +314,36 @@ void DP::Ph1::Inductor::mnaTearApplyVoltageStamp(Matrix &voltageVector) {
 void DP::Ph1::Inductor::mnaTearPostStep(Complex voltage, Complex current) {
   (**mIntfVoltage)(0, 0) = voltage;
   (**mIntfCurrent)(0, 0) = mEquivCond(0, 0) * voltage + mEquivCurrent(0, 0);
+}
+
+// #### Quadrature correction ####
+
+CPS::MNAQuadratureCorrectionInterface<Complex>::StateKind
+DP::Ph1::Inductor::mnaCorrectionStateKind() {
+  return StateKind::InductorCurrent;
+}
+
+Complex DP::Ph1::Inductor::mnaCorrectionAdmittance(UInt index) {
+  return mEquivCond(0, 0);
+}
+
+Complex DP::Ph1::Inductor::mnaCorrectionState(UInt index) {
+  return (**mIntfCurrent)(0, 0);
+}
+
+void DP::Ph1::Inductor::mnaCorrectionSetState(UInt index, Complex value) {
+  (**mIntfCurrent)(0, 0) = value;
+}
+
+Real DP::Ph1::Inductor::mnaCorrectionElementValue(UInt index) {
+  return **mInductance;
+}
+
+void DP::Ph1::Inductor::mnaCorrectionNodes(UInt index, Int &node0, Int &node1) {
+  node0 = terminalNotGrounded(0) ? static_cast<Int>(matrixNodeIndex(0)) : -1;
+  node1 = terminalNotGrounded(1) ? static_cast<Int>(matrixNodeIndex(1)) : -1;
+}
+
+void DP::Ph1::Inductor::mnaCorrectionRebuildRightVector() {
+  mnaCompApplyRightSideVectorStamp(**mRightVector);
 }

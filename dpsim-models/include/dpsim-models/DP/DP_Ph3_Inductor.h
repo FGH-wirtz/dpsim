@@ -10,6 +10,7 @@
 
 #include <dpsim-models/Base/Base_Ph3_Inductor.h>
 #include <dpsim-models/MNASimPowerComp.h>
+#include <dpsim-models/Solver/MNAQuadratureCorrectionInterface.h>
 #include <dpsim-models/Solver/MNATearInterface.h>
 
 namespace CPS {
@@ -25,6 +26,7 @@ namespace Ph3 {
 class Inductor : public MNASimPowerComp<Complex>,
                  public Base::Ph3::Inductor,
                  public MNATearInterface,
+                 public MNAQuadratureCorrectionInterface<Complex>,
                  public SharedFactory<Inductor> {
 protected:
   /// Equivalent current source [A]
@@ -87,6 +89,26 @@ public:
   void mnaTearApplyMatrixStamp(SparseMatrixRow &tearMatrix) override;
   void mnaTearApplyVoltageStamp(Matrix &voltageVector) override;
   void mnaTearPostStep(MatrixComp voltage, MatrixComp current) override;
+
+  // #### Quadrature correction ####
+  /// One state per phase
+  UInt mnaCorrectionStateCount() override;
+  ///
+  StateKind mnaCorrectionStateKind() override;
+  ///
+  Complex mnaCorrectionAdmittance(UInt index) override;
+  ///
+  Complex mnaCorrectionState(UInt index) override;
+  ///
+  void mnaCorrectionSetState(UInt index, Complex value) override;
+  ///
+  Real mnaCorrectionElementValue(UInt index) override;
+  Complex mnaCorrectionCouplingAdmittance(UInt row, UInt col) override;
+  Real mnaCorrectionCouplingElement(UInt row, UInt col) override;
+  ///
+  void mnaCorrectionNodes(UInt index, Int &node0, Int &node1) override;
+  ///
+  void mnaCorrectionRebuildRightVector() override;
 };
 
 } // namespace Ph3

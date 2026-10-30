@@ -32,6 +32,7 @@ void DP::Ph1::Capacitor::initialize(Matrix frequencies) {
   mEquivCurrent = MatrixComp::Zero(mNumFreqs, 1);
   mEquivCond = MatrixComp::Zero(mNumFreqs, 1);
   mPrevVoltCoeff = MatrixComp::Zero(mNumFreqs, 1);
+  mPrevCurrCoeff = MatrixComp::Zero(mNumFreqs, 1);
 }
 
 Complex DP::Ph1::Capacitor::getMNAConductance() const {
@@ -67,26 +68,52 @@ void DP::Ph1::Capacitor::initializeFromNodesAndTerminals(Real frequency) {
   mSLog->flush();
 }
 
-void DP::Ph1::Capacitor::mnaCompInitialize(Real omega, Real timeStep,
-                                           Attribute<Matrix>::Ptr leftVector) {
-  updateMatrixNodeIndices();
-
-  Real equivCondReal = 2.0 * **mCapacitance / timeStep;
-  Real prevVoltCoeffReal = 2.0 * **mCapacitance / timeStep;
-
+void DP::Ph1::Capacitor::initVars(Real timeStep) {
   for (UInt freq = 0; freq < mNumFreqs; freq++) {
-    Real equivCondImag = 2. * PI * mFrequencies(freq, 0) * **mCapacitance;
-    mEquivCond(freq, 0) = {equivCondReal, equivCondImag};
-    Real prevVoltCoeffImag = -2. * PI * mFrequencies(freq, 0) * **mCapacitance;
-    mPrevVoltCoeff(freq, 0) = {prevVoltCoeffReal, prevVoltCoeffImag};
+    Real susceptance = 2. * PI * mFrequencies(freq, 0) * **mCapacitance;
+
+    if (mIntegrationRule == IntegrationRule::BackwardEuler) {
+      Real conductance = **mCapacitance / timeStep;
+
+      mEquivCond(freq, 0) = {conductance, susceptance};
+      mPrevVoltCoeff(freq, 0) = {conductance, 0.};
+      mPrevCurrCoeff(freq, 0) = {0., 0.};
+    } else {
+      Real conductance = 2.0 * **mCapacitance / timeStep;
+
+      mEquivCond(freq, 0) = {conductance, susceptance};
+      mPrevVoltCoeff(freq, 0) = {conductance, -susceptance};
+      mPrevCurrCoeff(freq, 0) = {1., 0.};
+    }
 
     mEquivCurrent(freq, 0) =
-        -(**mIntfCurrent)(0, freq) +
+        -mPrevCurrCoeff(freq, 0) * (**mIntfCurrent)(0, freq) +
         -mPrevVoltCoeff(freq, 0) * (**mIntfVoltage)(0, freq);
     (**mIntfCurrent)(0, freq) =
         mEquivCond(freq, 0) * (**mIntfVoltage)(0, freq) +
         mEquivCurrent(freq, 0);
   }
+}
+
+bool DP::Ph1::Capacitor::mnaSetIntegrationRule(IntegrationRule rule,
+                                               Real timeStep) {
+  if (rule == mIntegrationRule)
+    return true;
+
+  mIntegrationRule = rule;
+
+  // initVars() also resets the interface current, which is the state here
+  MatrixComp current = **mIntfCurrent;
+  initVars(timeStep);
+  **mIntfCurrent = current;
+  return true;
+}
+
+void DP::Ph1::Capacitor::mnaCompInitialize(Real omega, Real timeStep,
+                                           Attribute<Matrix>::Ptr leftVector) {
+  updateMatrixNodeIndices();
+
+  initVars(timeStep);
 
   SPDLOG_LOGGER_INFO(mSLog,
                      "\n--- MNA initialization ---"
@@ -147,10 +174,8 @@ void DP::Ph1::Capacitor::mnaCompApplySystemMatrixStampHarm(
 
 void DP::Ph1::Capacitor::mnaCompApplyRightSideVectorStamp(Matrix &rightVector) {
   for (UInt freq = 0; freq < mNumFreqs; freq++) {
-    //mCureqr = mCurrr + mGcr * mDeltavr + mGci * mDeltavi;
-    //mCureqi = mCurri + mGcr * mDeltavi - mGci * mDeltavr;
     mEquivCurrent(freq, 0) =
-        -(**mIntfCurrent)(0, freq) +
+        -mPrevCurrCoeff(freq, 0) * (**mIntfCurrent)(0, freq) +
         -mPrevVoltCoeff(freq, 0) * (**mIntfVoltage)(0, freq);
 
     if (terminalNotGrounded(0))
@@ -301,4 +326,37 @@ void DP::Ph1::Capacitor::mnaCompUpdateCurrentHarm() {
     SPDLOG_LOGGER_DEBUG(mSLog, "Current {:s}",
                         Logger::phasorToString((**mIntfCurrent)(0, freq)));
   }
+}
+
+// #### Quadrature correction ####
+
+CPS::MNAQuadratureCorrectionInterface<Complex>::StateKind
+DP::Ph1::Capacitor::mnaCorrectionStateKind() {
+  return StateKind::CapacitorVoltage;
+}
+
+Complex DP::Ph1::Capacitor::mnaCorrectionAdmittance(UInt index) {
+  return mEquivCond(0, 0);
+}
+
+Complex DP::Ph1::Capacitor::mnaCorrectionState(UInt index) {
+  return (**mIntfVoltage)(0, 0);
+}
+
+void DP::Ph1::Capacitor::mnaCorrectionSetState(UInt index, Complex value) {
+  (**mIntfVoltage)(0, 0) = value;
+}
+
+Real DP::Ph1::Capacitor::mnaCorrectionElementValue(UInt index) {
+  return **mCapacitance;
+}
+
+void DP::Ph1::Capacitor::mnaCorrectionNodes(UInt index, Int &node0,
+                                            Int &node1) {
+  node0 = terminalNotGrounded(0) ? static_cast<Int>(matrixNodeIndex(0)) : -1;
+  node1 = terminalNotGrounded(1) ? static_cast<Int>(matrixNodeIndex(1)) : -1;
+}
+
+void DP::Ph1::Capacitor::mnaCorrectionRebuildRightVector() {
+  mnaCompApplyRightSideVectorStamp(**mRightVector);
 }

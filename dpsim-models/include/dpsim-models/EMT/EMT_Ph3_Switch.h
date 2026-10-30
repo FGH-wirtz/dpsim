@@ -121,6 +121,7 @@ public:
   /// ExponentialZCSEmulation:
   ///   arm a simultaneous three-phase exponential resistance decrease.
   void closeSwitch() override;
+  void closePole(UInt phase);
 
   // #### General ####
   void initializeFromNodesAndTerminals(Real frequency) override;

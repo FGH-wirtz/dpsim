@@ -27,6 +27,13 @@ public:
   virtual void mnaInitialize(Real omega, Real timeStep) = 0;
   virtual void mnaInitialize(Real omega, Real timeStep,
                              Attribute<Matrix>::Ptr leftVector) = 0;
+  /// Integration rule a companion model is derived with.
+  enum class IntegrationRule { Trapezoidal, BackwardEuler };
+  /// Re-derives the companion model for the given rule, keeping the present
+  /// state. False if the component cannot follow, which leaves it trapezoidal.
+  virtual bool mnaSetIntegrationRule(IntegrationRule rule, Real timeStep) {
+    return false;
+  }
   /// Stamps system matrix
   virtual void mnaApplySystemMatrixStamp(SparseMatrixRow &systemMatrix) = 0;
   /// Stamps right side (source) vector

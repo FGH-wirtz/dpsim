@@ -10,6 +10,7 @@
 
 #include <dpsim-models/Base/Base_Ph1_Inductor.h>
 #include <dpsim-models/MNASimPowerComp.h>
+#include <dpsim-models/Solver/MNAQuadratureCorrectionInterface.h>
 #include <dpsim-models/Solver/MNATearInterface.h>
 
 namespace CPS {
@@ -25,6 +26,7 @@ namespace Ph1 {
 class Inductor : public MNASimPowerComp<Complex>,
                  public Base::Ph1::Inductor,
                  public MNATearInterface,
+                 public MNAQuadratureCorrectionInterface<Complex>,
                  public SharedFactory<Inductor> {
 protected:
   /// DC equivalent current source for harmonics [A]
@@ -33,6 +35,11 @@ protected:
   MatrixComp mEquivCond;
   /// Coefficient in front of previous current value for harmonics
   MatrixComp mPrevCurrFac;
+  /// Coefficient in front of the previous voltage value, zero under backward
+  /// Euler
+  MatrixComp mPrevVoltFac;
+  /// Rule the companion model is currently derived with
+  IntegrationRule mIntegrationRule = IntegrationRule::Trapezoidal;
   ///
   void initVars(Real timeStep);
 
@@ -47,6 +54,9 @@ public:
   // #### General ####
   /// Return new instance with the same parameters
   SimPowerComp<Complex>::Ptr clone(String name) override;
+
+  /// Re-derives the companion model for the given rule
+  bool mnaSetIntegrationRule(IntegrationRule rule, Real timeStep) override;
   /// Initializes state variables considering the number of frequencies
   void initialize(Matrix frequencies) override;
   /// Initializes states from power flow data
@@ -90,6 +100,22 @@ public:
                                  AttributeBase::List &attributeDependencies,
                                  AttributeBase::List &modifiedAttributes,
                                  Attribute<Matrix>::Ptr &leftVector) override;
+
+  // #### Quadrature correction ####
+  /// The inductor contributes a branch current.
+  StateKind mnaCorrectionStateKind() override;
+  /// Stamped companion admittance at the fundamental frequency.
+  Complex mnaCorrectionAdmittance(UInt index) override;
+  /// Branch current envelope
+  Complex mnaCorrectionState(UInt index) override;
+  /// Overwrite the branch current envelope after a topology change
+  void mnaCorrectionSetState(UInt index, Complex value) override;
+  /// Inductance
+  Real mnaCorrectionElementValue(UInt index) override;
+  ///
+  void mnaCorrectionNodes(UInt index, Int &node0, Int &node1) override;
+  /// Recompute the equivalent current source from the present state
+  void mnaCorrectionRebuildRightVector() override;
 
   // #### Tearing methods ####
   void mnaTearInitialize(Real omega, Real timestep) override;

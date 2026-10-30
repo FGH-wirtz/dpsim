@@ -10,6 +10,7 @@
 
 #include <dpsim-models/Base/Base_SynchronGenerator.h>
 #include <dpsim-models/MNASimPowerComp.h>
+#include <dpsim-models/Solver/MNAEventStampInterface.h>
 #include <dpsim-models/Solver/MNAInterface.h>
 
 namespace CPS {
@@ -17,7 +18,8 @@ namespace DP {
 namespace Ph3 {
 /// Synchronous generator model in dq-reference frame
 class SynchronGeneratorDQ : public MNASimPowerComp<Complex>,
-                            public Base::SynchronGenerator {
+                            public Base::SynchronGenerator,
+                            public MNAEventStampInterface<Complex> {
 protected:
   /// Compensation current source set point
   MatrixComp mCompensationCurrent;
@@ -84,6 +86,9 @@ public:
   void mnaCompApplyRightSideVectorStamp(Matrix &rightVector) override;
   ///
   void mnaCompApplySystemMatrixStamp(SparseMatrixRow &systemMatrix) override;
+  /// For the quadrature correction: stator resistance in series with the mean
+  /// subtransient inductance, per phase to ground
+  void mnaApplyEventStamp(SparseMatrixRow &matrix, Real omega) override;
 
   /// Retrieves calculated voltage from simulation for next step
   virtual void mnaCompUpdateVoltage(const Matrix &leftVector) override;

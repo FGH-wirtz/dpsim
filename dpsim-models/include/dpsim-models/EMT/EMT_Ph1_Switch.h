@@ -28,6 +28,15 @@ class Switch : public MNASimPowerComp<Real>,
                public MNAVariableCompInterface,
                public MNASwitchInterface {
 public:
+  /// Ideal opens at the command, CurrentZero at the next sampled current zero
+  enum class SwitchingMode {
+    Ideal = 0,
+    CurrentZero = 1,
+  };
+
+  const Attribute<Bool>::Ptr mPoleClosed;
+  const Attribute<Real>::Ptr mZeroCrossingTime;
+
   /// Defines UID, name, component parameters and logging level
   Switch(String uid, String name, Logger::Level loglevel = Logger::Level::off);
   /// Defines name, component parameters and logging level
@@ -35,6 +44,15 @@ public:
       : Switch(name, name, logLevel) {}
 
   SimPowerComp<Real>::Ptr clone(String name) override;
+
+  void setSwitchingMode(SwitchingMode mode);
+  SwitchingMode switchingMode() const { return mSwitchingMode; }
+  void setZeroCrossingTolerance(Real tolerance) {
+    mZeroCrossingTolerance = tolerance;
+  }
+
+  void openSwitch() override;
+  void closeSwitch() override;
 
   // #### General ####
   /// Initializes component from power flow data
@@ -55,6 +73,7 @@ public:
   // #### MNA section for switches ####
   /// Check if switch is closed
   Bool mnaIsClosed() override;
+  Bool supportsPrecomputedSystemMatrices() const override;
   /// Stamps system matrix considering the defined switch position
   void mnaCompApplySwitchSystemMatrixStamp(Bool closed,
                                            SparseMatrixRow &systemMatrix,
@@ -71,6 +90,16 @@ public:
                                  Attribute<Matrix>::Ptr &leftVector) override;
   // #### MNA section for variable component ####
   Bool hasParameterChanged() override;
+
+private:
+  SwitchingMode mSwitchingMode = SwitchingMode::Ideal;
+  Real mZeroCrossingTolerance = 1e-6;
+  Bool mOpeningRequested = false;
+  Bool mPreviousCurrentValid = false;
+  Real mPreviousCurrent = 0.0;
+  Real mPreviousTime = 0.0;
+
+  void updateZeroCrossingState(Real time);
 };
 } // namespace Ph1
 } // namespace EMT

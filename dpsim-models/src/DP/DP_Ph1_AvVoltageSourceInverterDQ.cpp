@@ -299,6 +299,10 @@ void DP::Ph1::AvVoltageSourceInverterDQ::mnaParentInitialize(
     Real omega, Real timeStep, Attribute<Matrix>::Ptr leftVector) {
   mTimeStep = timeStep;
 
+  // The current loop holds the filter current, so at a switching event the
+  // converter is a current source and its filter state is not corrected
+  mSubInductorF->mnaCorrectionSetCurrentControlled(mWithControl);
+
   // initialize state space controller
   mPowerControllerVSI->initializeStateSpaceModel(omega, timeStep, leftVector);
   mPLL->setSimulationParameters(timeStep);
