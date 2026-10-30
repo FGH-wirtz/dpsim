@@ -255,6 +255,8 @@ void EMT::Ph3::AvVoltageSourceInverterDQ::initializeParentFromNodesAndTerminals(
   // Initialize controlled source
   mSubCtrledVoltageSource->setParameters(mVirtualNodes[0]->initialVoltage(),
                                          0.0);
+  // The first pre-step applies the reference before any control step ran
+  **mVsref = vsInit.real();
 
   // Connect electrical subcomponents
   mSubCtrledVoltageSource->connect({SimNode::GND, mVirtualNodes[0]});
@@ -275,7 +277,11 @@ void EMT::Ph3::AvVoltageSourceInverterDQ::initializeParentFromNodesAndTerminals(
   // Initialize control subcomponents
   // current and voltage inputs to PLL and power controller
   Matrix vcdq, ircdq;
-  Real theta = std::arg(mVirtualNodes[3]->initialSingleVoltage());
+  // The filter connects to the transformer's low voltage node, or directly to
+  // the terminal without one
+  const auto filterNode =
+      mWithConnectionTransformer ? mVirtualNodes[3] : mTerminals[0]->node();
+  Real theta = std::arg(filterNode->initialSingleVoltage());
   vcdq =
       parkTransformPowerInvariant(theta, filterInterfaceInitialVoltage.real());
   ircdq = parkTransformPowerInvariant(
@@ -289,8 +295,8 @@ void EMT::Ph3::AvVoltageSourceInverterDQ::initializeParentFromNodesAndTerminals(
   // angle input
   Matrix matrixStateInit = Matrix::Zero(2, 1);
   Matrix matrixOutputInit = Matrix::Zero(2, 1);
-  matrixStateInit(0, 0) = std::arg(mVirtualNodes[3]->initialSingleVoltage());
-  matrixOutputInit(0, 0) = std::arg(mVirtualNodes[3]->initialSingleVoltage());
+  matrixStateInit(0, 0) = theta;
+  matrixOutputInit(0, 0) = theta;
   mPLL->setInitialValues(**mVcq, matrixStateInit, matrixOutputInit);
 
   SPDLOG_LOGGER_INFO(
@@ -411,7 +417,9 @@ void EMT::Ph3::AvVoltageSourceInverterDQ::controlStep(Real time,
   // Transformation interface forward
   Matrix vcdq, ircdq;
   Real theta = mPLL->mOutputPrev->get()(0, 0);
-  vcdq = parkTransformPowerInvariant(theta, **mVirtualNodes[3]->mVoltage);
+  vcdq = parkTransformPowerInvariant(
+      theta, mWithConnectionTransformer ? **mVirtualNodes[3]->mVoltage
+                                        : **mIntfVoltage);
   ircdq = parkTransformPowerInvariant(theta, -**mSubResistorC->mIntfCurrent);
 
   **mVcd = vcdq(0, 0);
