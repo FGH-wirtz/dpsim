@@ -7,6 +7,7 @@
  *********************************************************************************/
 
 #include <algorithm>
+#include <dpsim-models/CompositePowerComp.h>
 #include <dpsim/MNASolver.h>
 #include <dpsim/SequentialScheduler.h>
 #include <functional>
@@ -34,6 +35,14 @@ MnaSolver<VarType>::MnaSolver(String name, CPS::Domain domain,
 template <typename VarType>
 void MnaSolver<VarType>::setSystem(const CPS::SystemTopology &system) {
   mSystem = system;
+}
+
+template <typename VarType>
+void MnaSolver<VarType>::doQuadratureCorrection(Bool value) {
+  mQuadratureCorrection = value;
+
+  if (mQuadratureCorrector)
+    mQuadratureCorrector->setEnabled(value);
 }
 
 template <typename VarType>
@@ -166,6 +175,8 @@ template <typename VarType> void MnaSolver<VarType>::initialize() {
 
   if (mStateSpaceExtraction)
     initializeStateSpaceExtractor();
+
+  initializeQuadratureCorrector();
 
   SPDLOG_LOGGER_INFO(mSLog, "--- Initialization finished ---");
   SPDLOG_LOGGER_INFO(mSLog, "--- Initial system matrices and vectors ---");
@@ -397,6 +408,59 @@ void MnaSolver<VarType>::initializeStateSpaceExtractor() {
       mSLog,
       "Initialized MNA state-space extractor with {:d} extraction states.",
       mStateSpaceExtractor->getStateCount());
+}
+
+template <typename VarType>
+void MnaSolver<VarType>::collectCorrectionStates(
+    const CPS::MNAInterface::Ptr &component) {
+  if (!component)
+    return;
+
+  auto corrComp =
+      std::dynamic_pointer_cast<CPS::MNAQuadratureCorrectionInterface<VarType>>(
+          component);
+  if (corrComp)
+    mCorrectionStates.push_back(corrComp);
+
+  auto stampComp =
+      std::dynamic_pointer_cast<CPS::MNAEventStampInterface<VarType>>(
+          component);
+  if (stampComp)
+    mEventStamps.push_back(stampComp);
+
+  // Storage elements are often sub-components of a PiLine or RXLoad, which do
+  // not appear in the top-level component list.
+  auto composite =
+      std::dynamic_pointer_cast<CPS::CompositePowerComp<VarType>>(component);
+  if (composite)
+    for (auto subComponent : composite->mnaSubComponents())
+      collectCorrectionStates(subComponent);
+}
+
+template <typename VarType>
+void MnaSolver<VarType>::initializeQuadratureCorrector() {
+  // Not collected in identifyTopologyObjects(): composites create their
+  // sub-components later, in initializeFromNodesAndTerminals().
+  mCorrectionStates.clear();
+  mEventStamps.clear();
+  for (auto comp : mSystem.mComponents)
+    collectCorrectionStates(std::dynamic_pointer_cast<CPS::MNAInterface>(comp));
+
+  if (mCorrectionStates.empty()) {
+    SPDLOG_LOGGER_INFO(mSLog, "No correctable storage states found, "
+                              "quadrature correction is disabled.");
+    return;
+  }
+
+  const UInt mnaVectorSize = static_cast<UInt>((**mLeftSideVector).rows());
+
+  mQuadratureCorrector = std::make_shared<MNAQuadratureCorrector<VarType>>();
+  mQuadratureCorrector->setEnabled(mQuadratureCorrection);
+  mQuadratureCorrector->initialize(
+      mCorrectionStates, mnaVectorSize,
+      static_cast<UInt>(mSystem.mFrequencies.size()), mSystem.mSystemOmega,
+      mTimeStep, mSLog);
+  mQuadratureCorrector->setEventStamps(mEventStamps);
 }
 
 template <typename VarType>

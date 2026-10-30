@@ -202,6 +202,7 @@ template <typename VarType> void Simulation::createMNASolver() {
           mSolverPluginName);
 
       mnaSolver->doStateSpaceExtraction(mStateSpaceExtraction);
+      mnaSolver->doQuadratureCorrection(mQuadratureCorrection);
 
       solver = mnaSolver;
       solver->setTimeStep(**mTimeStep);
@@ -236,6 +237,9 @@ void Simulation::sync() const {
 }
 
 void Simulation::prepSchedule() {
+  for (auto solver : mSolvers)
+    solver->setDampedStep(mDampedStep);
+
   mTasks.clear();
   mTaskOutEdges.clear();
   mTaskInEdges.clear();
@@ -479,6 +483,9 @@ Real Simulation::step() {
   }
 
   mEvents.handleEvents(mTime);
+  for (auto solver : mSolvers)
+    solver->prepareStep();
+
   mScheduler->step(mTime, mTimeStepCount);
 
   mTime += **mTimeStep;

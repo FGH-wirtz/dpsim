@@ -4,6 +4,7 @@ set(DPSIM_SOURCES
 	MNASolverDirect.cpp
 	MNAStateSpaceContributor.cpp
 	MNAStateSpaceExtractor.cpp
+	MNAQuadratureCorrector.cpp
 	DenseLUAdapter.cpp
 	DirectLinearSolverConfiguration.cpp
 	PFSolver.cpp

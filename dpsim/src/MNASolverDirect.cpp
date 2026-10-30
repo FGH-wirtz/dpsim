@@ -129,11 +129,66 @@ void MnaSolverDirect<VarType>::solveWithSystemMatrixRecomputation(
   std::chrono::duration<Real> diff = end - start;
   mSolveTimes.push_back(diff.count());
 
+  // Asked on every solve, since asking clears the switches' records. The
+  // correction needs the post-event matrix, hence mVariableComponentChanged.
+  const Bool correctionNeeded = anySwitchNeedsCorrection();
+
+  if (!mIsInInitialization && mVariableComponentChanged && correctionNeeded)
+    applyQuadratureCorrection(*mDirectLinearSolverVariableSystemMatrix,
+                              mVariableSystemMatrix, time);
+
+  // For the next prepareStep(), the first point a rule change still reaches
+  if (!mIsInInitialization && mVariableComponentChanged)
+    mVariableComponentChangedLastStep = true;
+
   // TODO split into separate task? (dependent on x, updating all v attributes)
   for (UInt nodeIdx = 0; nodeIdx < mNumNetNodes; ++nodeIdx)
     mNodes[nodeIdx]->mnaUpdateVoltage(**mLeftSideVector);
 
   // Components' states will be updated by the post-step tasks
+}
+
+template <typename VarType>
+UInt MnaSolverDirect<VarType>::setIntegrationRule(
+    CPS::MNAInterface::IntegrationRule rule) {
+  UInt declined = 0;
+  for (auto comp : mMNAComponents)
+    if (!comp->mnaSetIntegrationRule(rule, mTimeStep))
+      ++declined;
+  for (auto comp : mMNAIntfVariableComps)
+    if (!comp->mnaSetIntegrationRule(rule, mTimeStep))
+      ++declined;
+
+  mBaseSystemMatrix.setZero();
+  for (auto statElem : mMNAComponents)
+    statElem->mnaApplySystemMatrixStamp(mBaseSystemMatrix);
+
+  mVariableSystemMatrix = mBaseSystemMatrix;
+  for (auto varElem : mMNAIntfVariableComps)
+    varElem->mnaApplySystemMatrixStamp(mVariableSystemMatrix);
+
+  mDirectLinearSolverVariableSystemMatrix->factorize(mVariableSystemMatrix);
+  return declined;
+}
+
+template <typename VarType> void MnaSolverDirect<VarType>::prepareStep() {
+  if (!mDampedStepEnabled || !mSystemMatrixRecomputationEnabled)
+    return;
+
+  if (mDampedStepActive) {
+    setIntegrationRule(CPS::MNAInterface::IntegrationRule::Trapezoidal);
+    mDampedStepActive = false;
+  } else if (mVariableComponentChangedLastStep) {
+    UInt declined =
+        setIntegrationRule(CPS::MNAInterface::IntegrationRule::BackwardEuler);
+    mDampedStepActive = true;
+    SPDLOG_LOGGER_INFO(mSLog,
+                       "Damped step: backward Euler for one step, {} "
+                       "components could not follow and stay trapezoidal.",
+                       declined);
+  }
+
+  mVariableComponentChangedLastStep = false;
 }
 
 template <typename VarType>
@@ -252,6 +307,57 @@ std::shared_ptr<CPS::Task> MnaSolverDirect<VarType>::createLogTask() {
 }
 
 template <typename VarType>
+Bool MnaSolverDirect<VarType>::anySwitchNeedsCorrection() {
+  Bool needed = false;
+  mSwitchedPoles.clear();
+
+  for (auto sw : mSwitches) {
+    const Bool pending = sw->takeSwitchingEvent();
+    const auto switched = sw->takeSwitchedPoles();
+
+    if (pending && sw->requestsQuadratureCorrection()) {
+      needed = true;
+      mSwitchedPoles.insert(mSwitchedPoles.end(), switched.begin(),
+                            switched.end());
+    }
+  }
+
+  return needed;
+}
+
+template <typename VarType>
+Bool MnaSolverDirect<VarType>::applyQuadratureCorrection(
+    DirectLinearSolver &linearSolver, const SparseMatrix &systemMatrix,
+    Real time) {
+  if (!mQuadratureCorrector)
+    return false;
+
+  const UInt corrected =
+      mQuadratureCorrector->correct(systemMatrix, time, mSwitchedPoles);
+  if (corrected == 0)
+    return false;
+
+  // A composite's right vector aggregates its sub-components, so every stamp
+  // is re-run
+  for (auto comp : mMNAComponents)
+    if (comp->getRightVector()->get().size() != 0)
+      comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
+  for (auto comp : mMNAIntfVariableComps)
+    if (comp->getRightVector()->get().size() != 0)
+      comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
+  for (auto comp : mMNAIntfSwitches)
+    if (comp->getRightVector()->get().size() != 0)
+      comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
+
+  mRightSideVector.setZero();
+  for (auto stamp : mRightVectorStamps)
+    mRightSideVector += *stamp;
+
+  **mLeftSideVector = linearSolver.solve(mRightSideVector);
+  return true;
+}
+
+template <typename VarType>
 void MnaSolverDirect<VarType>::solve(Real time, Int timeStepCount) {
   const auto previousSwitchStatus = mCurrentSwitchStatus;
   // Reset source vector
@@ -271,6 +377,13 @@ void MnaSolverDirect<VarType>::solve(Real time, Int timeStepCount) {
 
     **mLeftSideVector =
         mDirectLinearSolvers[mCurrentSwitchStatus][0]->solve(mRightSideVector);
+
+    const Bool correctionNeeded = anySwitchNeedsCorrection();
+
+    if (!mIsInInitialization && correctionNeeded)
+      applyQuadratureCorrection(*mDirectLinearSolvers[mCurrentSwitchStatus][0],
+                                mSwitchedMatrices[mCurrentSwitchStatus][0],
+                                time);
 
     if (Solver::mLogSolveTimes) {
       auto end = std::chrono::steady_clock::now();
@@ -399,6 +512,25 @@ template <typename VarType> void MnaSolverDirect<VarType>::logLUTimes() {
   logFactorizationTime();
   logRecomputationTime();
   logSolveTime();
+  logCorrectionStatistics();
+}
+
+template <typename VarType>
+void MnaSolverDirect<VarType>::logCorrectionStatistics() {
+  if (!mQuadratureCorrector)
+    return;
+
+  SPDLOG_LOGGER_INFO(
+      mSLog,
+      "Quadrature correction statistics: enabled {:d}, correctable states "
+      "{:d}, calls {:d}, quadrature solves {:d}, cumulative time {:.12f}, "
+      "quadrature corrections {:d}",
+      static_cast<Int>(mQuadratureCorrector->isEnabled()),
+      mQuadratureCorrector->getStateCount(),
+      mQuadratureCorrector->getCallCount(),
+      mQuadratureCorrector->getQuadratureSolveCount(),
+      mQuadratureCorrector->getCumulativeTime(),
+      mQuadratureCorrector->getCorrectedStateCount());
 }
 
 template <typename VarType> void MnaSolverDirect<VarType>::logSolveTime() {

@@ -110,6 +110,8 @@ protected:
   Solver::Behaviour mSolverBehaviour = Solver::Behaviour::Simulation;
   ///
   Solver::List mSolvers;
+  /// Take the step after a switching event with backward Euler
+  Bool mDampedStep = false;
   ///
   DirectLinearSolverImpl mDirectImpl = DirectLinearSolverImpl::Undef;
   ///
@@ -121,6 +123,7 @@ protected:
       Solver::SystemMatrixRecomputationMode::Auto;
   /// Enable extraction of the MNA-coupled discrete-time state matrix.
   Bool mStateSpaceExtraction = false;
+  Bool mQuadratureCorrection = true;
 
   /// If tearing components exist, the Diakoptics
   /// solver is selected automatically.
@@ -192,6 +195,9 @@ public:
   void setSystem(const CPS::SystemTopology &system) { mSystem = system; }
   ///
   void setTimeStep(Real timeStep) { **mTimeStep = timeStep; }
+  /// Takes the step after a switching event with backward Euler. Requires
+  /// system matrix recomputation.
+  void setDampedStep(Bool enable) { mDampedStep = enable; }
   ///
   void setFinalTime(Real finalTime) { **mFinalTime = finalTime; }
   ///
@@ -251,6 +257,10 @@ public:
   /// Enable extraction of the MNA-coupled discrete-time state matrix.
   void doStateSpaceExtraction(Bool value = true) {
     mStateSpaceExtraction = value;
+  }
+  /// Enable the quadrature correction after a switching event, on by default
+  void doQuadratureCorrection(Bool value = true) {
+    mQuadratureCorrection = value;
   }
   /// If logStepTimes is enabled, the time needed for every timesteps is logged
   /// and can be written to a file or the console using logStepTimes()

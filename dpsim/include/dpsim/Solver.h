@@ -98,6 +98,12 @@ public:
   enum class Type { MNA, DAE, NRP };
   ///
   void setTimeStep(Real timeStep) { mTimeStep = timeStep; }
+
+  /// Takes the step after a switching event with backward Euler, for comparison
+  /// with the quadrature correction
+  virtual void setDampedStep(Bool enable) {}
+  /// Called between time steps, before the components' pre step tasks
+  virtual void prepareStep() {}
   ///
   void doFrequencyParallelization(Bool freqParallel) {
     mFrequencyParallel = freqParallel;

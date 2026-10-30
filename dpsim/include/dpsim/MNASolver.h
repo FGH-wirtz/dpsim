@@ -23,6 +23,7 @@
 #include <dpsim-models/Solver/MNAVariableCompInterface.h>
 #include <dpsim/Config.h>
 #include <dpsim/DataLogger.h>
+#include <dpsim/MNAQuadratureCorrector.h>
 #include <dpsim/MNAStateSpaceExtractor.h>
 #include <dpsim/Solver.h>
 
@@ -128,6 +129,17 @@ protected:
   /// Extractor for the MNA-coupled state-space model.
   MNAStateSpaceExtractor::Ptr mStateSpaceExtractor;
 
+  // #### Quadrature correction ####
+  Bool mQuadratureCorrection = true;
+  /// Components whose storage state the correction writes after an event
+  typename CPS::MNAQuadratureCorrectionInterface<VarType>::List
+      mCorrectionStates;
+  /// Components without correctable states that still take part in the
+  /// correction's network solve
+  typename CPS::MNAEventStampInterface<VarType>::List mEventStamps;
+  /// Removes the quadrature part a switching event leaves in the storage states
+  typename MNAQuadratureCorrector<VarType>::Ptr mQuadratureCorrector;
+
   /// Constructor should not be called by users but by Simulation
   MnaSolver(String name, CPS::Domain domain = CPS::Domain::DP,
             CPS::Logger::Level logLevel = CPS::Logger::Level::info);
@@ -144,6 +156,10 @@ protected:
   void initializeSystemWithVariableMatrix();
   /// Initialization of state-space extraction.
   void initializeStateSpaceExtractor();
+  /// Initialization of the quadrature corrector.
+  void initializeQuadratureCorrector();
+  /// Recursively collect correctable storage states, descending into composites
+  void collectCorrectionStates(const CPS::MNAInterface::Ptr &component);
   /// Identify Nodes and SimPowerComps and SimSignalComps
   void identifyTopologyObjects();
   /// Resolve the requested system-matrix recomputation mode.
@@ -234,6 +250,9 @@ public:
 
   /// Enable or disable MNA state-space extraction.
   void doStateSpaceExtraction(Bool value = true);
+
+  /// Enable or disable the quadrature correction after a switching event.
+  void doQuadratureCorrection(Bool value = true);
 
   /// Read-only access to the MNA state-space extractor.
   const MNAStateSpaceExtractor &getStateSpaceExtractor() const;

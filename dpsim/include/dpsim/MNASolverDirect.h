@@ -112,6 +112,20 @@ protected:
   using MnaSolver<VarType>::mListVariableSystemMatrixEntries;
   using MnaSolver<VarType>::mStateSpaceExtraction;
   using MnaSolver<VarType>::mStateSpaceExtractor;
+  using MnaSolver<VarType>::mQuadratureCorrector;
+
+  /// True if a switch that opts into the correction changed a pole. Asking
+  /// clears the switch's record, so call it exactly once per solve.
+  Bool anySwitchNeedsCorrection();
+  /// Poles the switches that opt in reported as opened or closed, collected by
+  /// anySwitchNeedsCorrection() for the next correction
+  std::vector<CPS::MNASwitchInterface::SwitchedPole> mSwitchedPoles;
+  /// Corrects the storage states, then re-assembles and solves again.
+  /// systemMatrix is the post-event matrix linearSolver has factorised.
+  Bool applyQuadratureCorrection(DirectLinearSolver &linearSolver,
+                                 const SparseMatrix &systemMatrix, Real time);
+  /// Cost accounting for the correction, written with the LU timings
+  void logCorrectionStatistics();
 
   // #### General
   /// Create system matrix
@@ -137,8 +151,21 @@ protected:
   std::shared_ptr<CPS::Task> createSolveTaskRecomp() override;
   /// Recomputes systems matrix
   virtual void recomputeSystemMatrix(Real time);
+  /// Re-derives every companion model for the rule and refactorises the full
+  /// matrix, since the base matrix holds the static components too
+  UInt setIntegrationRule(CPS::MNAInterface::IntegrationRule rule);
+  /// True while the run is enabled to take a damped step after an event
+  Bool mDampedStepEnabled = false;
+  /// True while the damped step itself is being taken
+  Bool mDampedStepActive = false;
+  /// Set when a variable component changed during the previous step
+  Bool mVariableComponentChangedLastStep = false;
   /// Runs state-space extraction using the active linear solver.
   void extractStateSpace(Real time);
+  /// Records the request
+  void setDampedStep(Bool enable) override { mDampedStepEnabled = enable; }
+  /// Applies or withdraws the damped step between time steps
+  void prepareStep() override;
 
   // #### Scheduler Task Methods ####
   /// Create a solve task for this solver implementation
