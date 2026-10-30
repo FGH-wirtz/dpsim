@@ -66,6 +66,8 @@ list(APPEND MODELS_SOURCES
 	DP/DP_Ph1_GenericTwoTerminalITypeSSN.cpp
 
 	DP/DP_Ph3_VoltageSource.cpp
+	DP/DP_Ph3_SynchronGeneratorTrStab.cpp
+	DP/DP_Ph3_AvVoltageSourceInverterDQ.cpp
 	DP/DP_Ph3_CurrentSource.cpp
 	DP/DP_Ph3_Capacitor.cpp
 	DP/DP_Ph3_Inductor.cpp

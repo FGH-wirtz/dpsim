@@ -93,6 +93,8 @@
 
 #include <dpsim-models/DP/DP_Ph3_AvVoltSourceInverterStateSpace.h>
 #include <dpsim-models/DP/DP_Ph3_Capacitor.h>
+#include <dpsim-models/DP/DP_Ph3_SynchronGeneratorTrStab.h>
+#include <dpsim-models/DP/DP_Ph3_AvVoltageSourceInverterDQ.h>
 #include <dpsim-models/DP/DP_Ph3_CurrentSource.h>
 #include <dpsim-models/DP/DP_Ph3_GenericTwoTerminalITypeSSN.h>
 #include <dpsim-models/DP/DP_Ph3_GenericTwoTerminalVTypeSSN.h>
