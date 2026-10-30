@@ -8,6 +8,7 @@
 #include <vector>
 
 #include <dpsim-models/Logger.h>
+#include <dpsim-models/SimPowerComp.h>
 #include <dpsim-models/Solver/MNAEventStampInterface.h>
 #include <dpsim-models/Solver/MNAQuadratureCorrectionInterface.h>
 #include <dpsim-models/Solver/MNASwitchInterface.h>
@@ -28,7 +29,11 @@ namespace DPsim {
 ///
 /// with c the carrier of the step the poles switched in, the step the corrected
 /// states belong to, for openings and closings. Inductors take the opening poles,
-/// capacitors the closing ones. See switches-and-loads.md for the derivation.
+/// capacitors the closing ones. The optional zero-crossing interpolation
+/// rewinds the states of an opening to the interpolated current zero t0,
+/// corrects them there with the carrier of t0, steps the post-event network
+/// from t0 and interpolates back to the step. See switches-and-loads.md for the
+/// derivation.
 template <typename VarType> class MNAQuadratureCorrector {
 public:
   using Ptr = std::shared_ptr<MNAQuadratureCorrector<VarType>>;
@@ -54,6 +59,26 @@ public:
   void setEnabled(Bool enabled) { mEnabled = enabled; }
   Bool isEnabled() const { return mEnabled; }
 
+  /// On rewinds an opening to its interpolated current zero, see the class
+  /// description. The solver stores the states before every step.
+  void setZeroCrossingInterpolation(Bool enabled) { mInterpolation = enabled; }
+  Bool isZeroCrossingInterpolation() const { return mInterpolation; }
+
+  /// Keeps the storage states and node voltages of the last two steps, called
+  /// before every step with the solution of the previous one.
+  void storeStep(const Matrix &leftVector, Real time);
+
+  /// Moves the storage states to the earliest current zero of the opening
+  /// poles and replaces each pole's current by its value there. False if the
+  /// event cannot be interpolated, then nothing is changed.
+  Bool rewindToZero(Real time,
+                    std::vector<CPS::MNASwitchInterface::SwitchedPole> &poles);
+
+  /// After a step from the zero with the post-event network, whose solution is
+  /// openStep, interpolates the storage states back to the step the poles
+  /// opened on.
+  void returnFromZero(const Matrix &openStep);
+
   UInt getStateCount() const { return static_cast<UInt>(mEntries.size()); }
 
   /// Corrects the quadrature part of the storage states for the poles that
@@ -76,6 +101,14 @@ public:
   Real getCumulativeTime() const { return mCumulativeTime; }
 
 private:
+  struct Snapshot {
+    Matrix leftVector;
+    std::vector<CPS::MatrixVar<VarType>> voltages;
+    std::vector<CPS::MatrixVar<VarType>> currents;
+    Real time = 0.0;
+    Bool valid = false;
+  };
+
   struct Entry {
     typename CPS::MNAQuadratureCorrectionInterface<VarType>::Ptr state;
     UInt index = 0;
@@ -91,7 +124,19 @@ private:
       const SparseMatrix &systemMatrix, Real time,
       const std::vector<CPS::MNASwitchInterface::SwitchedPole> &switchedPoles);
 
+  void takeSnapshot(Snapshot &snapshot, const Matrix &leftVector, Real time);
+  void setStates(const Snapshot &from, const Snapshot &to, Real fraction);
+
   std::vector<Entry> mEntries;
+  /// One per component, with its interface voltage and current, which hold
+  /// the storage state and the history term
+  std::vector<typename CPS::SimPowerComp<VarType>::Ptr> mComponents;
+  Snapshot mPreviousStep;
+  Snapshot mLastStep;
+  Snapshot mAtZero;
+  /// Carrier at the current zero of each switched pole, empty outside an
+  /// interpolated event
+  std::vector<Complex> mPoleCarriers;
   typename CPS::MNAEventStampInterface<VarType>::List mEventStamps;
   /// Entry indices grouped by component, because coupling only ever runs
   /// between states of one component
@@ -105,6 +150,7 @@ private:
   UInt mCorrectedStates = 0;
   Real mCumulativeTime = 0.0;
   Bool mEnabled = true;
+  Bool mInterpolation = false;
   Bool mInitialized = false;
   CPS::Logger::Log mSLog;
 };

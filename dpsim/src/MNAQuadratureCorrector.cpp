@@ -10,6 +10,7 @@
 
 #include <dpsim-models/IdentifiedObject.h>
 #include <dpsim-models/MathUtils.h>
+#include <dpsim-models/Solver/MNAInterface.h>
 #include <dpsim/MNAQuadratureCorrector.h>
 
 using namespace DPsim;
@@ -36,6 +37,10 @@ void MNAQuadratureCorrector<VarType>::initialize(
   mTimeStep = timeStep;
   mEntries.clear();
   mComponentEntries.clear();
+  mComponents.clear();
+  mPreviousStep.valid = false;
+  mLastStep.valid = false;
+  mPoleCarriers.clear();
 
   for (auto state : states) {
     if (!state)
@@ -46,6 +51,8 @@ void MNAQuadratureCorrector<VarType>::initialize(
     const UInt count = state->mnaCorrectionStateCount();
 
     mComponentEntries.emplace_back();
+    mComponents.push_back(
+        std::dynamic_pointer_cast<SimPowerComp<VarType>>(state));
 
     for (UInt index = 0; index < count; ++index) {
       Entry entry;
@@ -234,8 +241,10 @@ UInt MNAQuadratureCorrector<VarType>::correctQuadrature(
           }
 
           // Only the quadrature part is imposed, the transient brings the rest
-          quadrature += Complex(0.0, (stateChange * carrier).imag()) *
-                        std::conj(carrier);
+          const Complex poleCarrier =
+              p < mPoleCarriers.size() ? mPoleCarriers[p] : carrier;
+          quadrature += Complex(0.0, (stateChange * poleCarrier).imag()) *
+                        std::conj(poleCarrier);
         }
 
         if (quadrature == Complex(0.0, 0.0))
@@ -258,6 +267,129 @@ UInt MNAQuadratureCorrector<VarType>::correctQuadrature(
 
     return changed;
   }
+}
+
+template <typename VarType>
+void MNAQuadratureCorrector<VarType>::takeSnapshot(Snapshot &snapshot,
+                                                   const Matrix &leftVector,
+                                                   Real time) {
+  snapshot.leftVector = leftVector;
+  snapshot.voltages.resize(mComponents.size());
+  snapshot.currents.resize(mComponents.size());
+  for (std::size_t c = 0; c < mComponents.size(); ++c)
+    if (mComponents[c]) {
+      snapshot.voltages[c] = **mComponents[c]->mIntfVoltage;
+      snapshot.currents[c] = **mComponents[c]->mIntfCurrent;
+    }
+  snapshot.time = time;
+  snapshot.valid = true;
+}
+
+template <typename VarType>
+void MNAQuadratureCorrector<VarType>::setStates(const Snapshot &from,
+                                                const Snapshot &to,
+                                                Real fraction) {
+  for (std::size_t c = 0; c < mComponents.size(); ++c) {
+    if (!mComponents[c])
+      continue;
+    **mComponents[c]->mIntfVoltage =
+        from.voltages[c] + fraction * (to.voltages[c] - from.voltages[c]);
+    **mComponents[c]->mIntfCurrent =
+        from.currents[c] + fraction * (to.currents[c] - from.currents[c]);
+  }
+  for (const auto &members : mComponentEntries)
+    if (!members.empty())
+      mEntries[members.front()].state->mnaCorrectionRebuildRightVector();
+}
+
+template <typename VarType>
+void MNAQuadratureCorrector<VarType>::storeStep(const Matrix &leftVector,
+                                                Real time) {
+  if (!mInitialized || !mInterpolation)
+    return;
+  std::swap(mPreviousStep, mLastStep);
+  takeSnapshot(mLastStep, leftVector, time);
+}
+
+template <typename VarType>
+Bool MNAQuadratureCorrector<VarType>::rewindToZero(
+    Real time, std::vector<CPS::MNASwitchInterface::SwitchedPole> &poles) {
+  mPoleCarriers.clear();
+  if constexpr (!std::is_same<VarType, Complex>::value) {
+    return false;
+  } else {
+    if (!mInitialized || !mEnabled || !mInterpolation || poles.empty() ||
+        !mPreviousStep.valid || !mLastStep.valid || mNumFreqs != 1)
+      return false;
+
+    // The states at hand belong to the step the poles opened on
+    const Real previous = mPreviousStep.time;
+    const Real last = mLastStep.time;
+    if (std::abs(last - (time - mTimeStep)) > 1e-6 * mTimeStep ||
+        last <= previous)
+      return false;
+
+    Real zero = last;
+    for (const auto &pole : poles) {
+      if (pole.closed || pole.zeroTime < 0.0)
+        return false;
+      zero = std::min(zero, pole.zeroTime);
+    }
+    zero = std::clamp(zero, previous, last);
+    const Real fraction = (zero - previous) / (last - previous);
+
+    setStates(mPreviousStep, mLastStep, fraction);
+    takeSnapshot(mAtZero,
+                 mPreviousStep.leftVector +
+                     fraction *
+                         (mLastStep.leftVector - mPreviousStep.leftVector),
+                 zero);
+
+    // Pole currents at the zero, each with the carrier of its own zero,
+    // Re{I c} = 0, so no in-phase current is left to chop
+    const Complex nominal = std::polar(1.0, mOmega * zero);
+    for (auto &pole : poles) {
+      const Complex voltage = elementAt(mAtZero.leftVector, pole.node1) -
+                              elementAt(mAtZero.leftVector, pole.node0);
+      pole.current = pole.closedConductance * voltage;
+      const Real magnitude = std::abs(pole.current);
+      Complex carrier = nominal;
+      if (magnitude > 0.0) {
+        carrier = Complex(0.0, 1.0) * std::conj(pole.current) / magnitude;
+        if ((carrier * std::conj(nominal)).real() < 0.0)
+          carrier = -carrier;
+      }
+      mPoleCarriers.push_back(carrier);
+    }
+
+    SPDLOG_LOGGER_INFO(mSLog,
+                       "Zero-crossing interpolation at t={:.9f}s: states "
+                       "rewound to the current zero t0={:.9f}s, {:.3f} of the "
+                       "step before the opening.",
+                       time, zero, fraction);
+    return true;
+  }
+}
+
+template <typename VarType>
+void MNAQuadratureCorrector<VarType>::returnFromZero(const Matrix &openStep) {
+  Snapshot corrected;
+  takeSnapshot(corrected, mAtZero.leftVector, mAtZero.time);
+
+  for (const auto &component : mComponents) {
+    auto mna = std::dynamic_pointer_cast<CPS::MNAInterface>(component);
+    if (!mna)
+      continue;
+    mna->mnaUpdateVoltage(openStep);
+    mna->mnaUpdateCurrent(openStep);
+  }
+
+  Snapshot stepped;
+  takeSnapshot(stepped, openStep, mAtZero.time + mTimeStep);
+
+  // The step the poles opened on lies between the zero and the step from it
+  setStates(corrected, stepped, (mLastStep.time - mAtZero.time) / mTimeStep);
+  mPoleCarriers.clear();
 }
 
 template class DPsim::MNAQuadratureCorrector<Real>;

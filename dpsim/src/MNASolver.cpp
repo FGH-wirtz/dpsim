@@ -46,6 +46,14 @@ void MnaSolver<VarType>::doQuadratureCorrection(Bool value) {
 }
 
 template <typename VarType>
+void MnaSolver<VarType>::doZeroCrossingInterpolation(Bool value) {
+  mZeroCrossingInterpolation = value;
+
+  if (mQuadratureCorrector)
+    mQuadratureCorrector->setZeroCrossingInterpolation(value);
+}
+
+template <typename VarType>
 void MnaSolver<VarType>::doStateSpaceExtraction(Bool value) {
   mStateSpaceExtraction = value;
 }
@@ -456,6 +464,8 @@ void MnaSolver<VarType>::initializeQuadratureCorrector() {
 
   mQuadratureCorrector = std::make_shared<MNAQuadratureCorrector<VarType>>();
   mQuadratureCorrector->setEnabled(mQuadratureCorrection);
+  mQuadratureCorrector->setZeroCrossingInterpolation(
+      mZeroCrossingInterpolation);
   mQuadratureCorrector->initialize(
       mCorrectionStates, mnaVectorSize,
       static_cast<UInt>(mSystem.mFrequencies.size()), mSystem.mSystemOmega,

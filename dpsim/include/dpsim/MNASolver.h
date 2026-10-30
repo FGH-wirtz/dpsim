@@ -131,6 +131,7 @@ protected:
 
   // #### Quadrature correction ####
   Bool mQuadratureCorrection = true;
+  Bool mZeroCrossingInterpolation = false;
   /// Components whose storage state the correction writes after an event
   typename CPS::MNAQuadratureCorrectionInterface<VarType>::List
       mCorrectionStates;
@@ -253,6 +254,10 @@ public:
 
   /// Enable or disable the quadrature correction after a switching event.
   void doQuadratureCorrection(Bool value = true);
+
+  /// Enable or disable the zero-crossing interpolation of the quadrature
+  /// correction.
+  void doZeroCrossingInterpolation(Bool value = true);
 
   /// Read-only access to the MNA state-space extractor.
   const MNAStateSpaceExtractor &getStateSpaceExtractor() const;

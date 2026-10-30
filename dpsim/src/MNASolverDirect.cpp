@@ -108,6 +108,9 @@ void MnaSolverDirect<VarType>::stampVariableSystemMatrix() {
 template <typename VarType>
 void MnaSolverDirect<VarType>::solveWithSystemMatrixRecomputation(
     Real time, Int timeStepCount) {
+  if (mQuadratureCorrector && !mIsInInitialization)
+    mQuadratureCorrector->storeStep(**mLeftSideVector, time - mTimeStep);
+
   // Reset source vector
   mRightSideVector.setZero();
 
@@ -332,26 +335,39 @@ Bool MnaSolverDirect<VarType>::applyQuadratureCorrection(
   if (!mQuadratureCorrector)
     return false;
 
+  const Bool interpolated =
+      mQuadratureCorrector->rewindToZero(time, mSwitchedPoles);
   const UInt corrected =
       mQuadratureCorrector->correct(systemMatrix, time, mSwitchedPoles);
-  if (corrected == 0)
+  if (corrected == 0 && !interpolated)
     return false;
 
   // A composite's right vector aggregates its sub-components, so every stamp
   // is re-run
-  for (auto comp : mMNAComponents)
-    if (comp->getRightVector()->get().size() != 0)
-      comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
-  for (auto comp : mMNAIntfVariableComps)
-    if (comp->getRightVector()->get().size() != 0)
-      comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
-  for (auto comp : mMNAIntfSwitches)
-    if (comp->getRightVector()->get().size() != 0)
-      comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
+  auto assembleRightSide = [this]() {
+    for (auto comp : mMNAComponents)
+      if (comp->getRightVector()->get().size() != 0)
+        comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
+    for (auto comp : mMNAIntfVariableComps)
+      if (comp->getRightVector()->get().size() != 0)
+        comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
+    for (auto comp : mMNAIntfSwitches)
+      if (comp->getRightVector()->get().size() != 0)
+        comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
 
-  mRightSideVector.setZero();
-  for (auto stamp : mRightVectorStamps)
-    mRightSideVector += *stamp;
+    mRightSideVector.setZero();
+    for (auto stamp : mRightVectorStamps)
+      mRightSideVector += *stamp;
+  };
+
+  assembleRightSide();
+
+  // One step of the post-event network from the zero, then back to the step
+  // the poles opened on
+  if (interpolated) {
+    mQuadratureCorrector->returnFromZero(linearSolver.solve(mRightSideVector));
+    assembleRightSide();
+  }
 
   **mLeftSideVector = linearSolver.solve(mRightSideVector);
   return true;
@@ -360,6 +376,8 @@ Bool MnaSolverDirect<VarType>::applyQuadratureCorrection(
 template <typename VarType>
 void MnaSolverDirect<VarType>::solve(Real time, Int timeStepCount) {
   const auto previousSwitchStatus = mCurrentSwitchStatus;
+  if (mQuadratureCorrector && !mIsInInitialization)
+    mQuadratureCorrector->storeStep(**mLeftSideVector, time - mTimeStep);
   // Reset source vector
   mRightSideVector.setZero();
 

@@ -124,6 +124,7 @@ protected:
   /// Enable extraction of the MNA-coupled discrete-time state matrix.
   Bool mStateSpaceExtraction = false;
   Bool mQuadratureCorrection = true;
+  Bool mZeroCrossingInterpolation = false;
 
   /// If tearing components exist, the Diakoptics
   /// solver is selected automatically.
@@ -261,6 +262,11 @@ public:
   /// Enable the quadrature correction after a switching event, on by default
   void doQuadratureCorrection(Bool value = true) {
     mQuadratureCorrection = value;
+  }
+  /// Rewind an opening to its interpolated current zero, correct it there and
+  /// step from it, off by default
+  void doZeroCrossingInterpolation(Bool value = true) {
+    mZeroCrossingInterpolation = value;
   }
   /// If logStepTimes is enabled, the time needed for every timesteps is logged
   /// and can be written to a file or the console using logStepTimes()

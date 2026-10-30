@@ -203,6 +203,7 @@ template <typename VarType> void Simulation::createMNASolver() {
 
       mnaSolver->doStateSpaceExtraction(mStateSpaceExtraction);
       mnaSolver->doQuadratureCorrection(mQuadratureCorrection);
+      mnaSolver->doZeroCrossingInterpolation(mZeroCrossingInterpolation);
 
       solver = mnaSolver;
       solver->setTimeStep(**mTimeStep);
