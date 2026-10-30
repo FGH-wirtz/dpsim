@@ -75,11 +75,26 @@ inductors are expressed in the envelope, not in the instantaneous quantity, and 
 that instant. The envelope itself still has to jump, and the trapezoidal companion model cannot
 follow it.
 
-{{% alert title="CurrentZero in DP is not EMT-like behaviour" color="warning" %}}
-The `CurrentZero` mode exists in DP and does find the correct instant, which is useful when the
-switching time itself is the quantity of interest. It does not deliver the continuity that the same
-mode gives in EMT, and the name invites that expectation. If you need continuous behaviour in DP,
-use the exponential mode below.
+Which is why an instantaneous current zero is not enough on its own. In EMT the quantity that has to
+vanish is the instantaneous current, and at a current zero it already has. In DP the quantity that has
+to vanish is the *envelope*, and the envelope is never zero. The instantaneous current is continuous
+through the interruption while its envelope is not, so the envelope has to jump, and the residual left
+in the history term is larger than the EMT one by a factor of roughly $2 / (\omega \Delta t)$ — some
+320 at a 20 us step.
+
+That jump is a property of the representation rather than of the physics, and it is corrected by the
+[quadrature correction]({{< ref "/docs/Developer Guide/Model Implementations/switches-and-loads.md" >}}),
+which solves the post-event network once at the shift frequency and removes the quadrature part of
+the interrupted current from the inductor states that carried it. With the correction in place,
+`CurrentZero` in `DP::Ph1` leaves the same small residual as EMT does.
+
+{{% alert title="Scope of the correction" color="warning" %}}
+The correction runs in `CurrentZero` only. `Ideal` is unchanged by design, and the exponential ramp
+already avoids the discontinuity, so correcting at the end of its ramp would reintroduce one. It
+covers the `DP::Ph1` and `DP::Ph3` inductors and capacitors, with one state per phase, and a
+component whose phases are mutually coupled enters the solve with its full inductance or
+capacitance matrix. Closing is the same correction with the roles swapped: the capacitor voltages
+take the quadrature part of the shorted pole voltage.
 {{% /alert %}}
 
 ## Exponential ZCS emulation

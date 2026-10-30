@@ -68,6 +68,12 @@ struct Parameters {
   Real closeCommandTime = 0.0437;
 
   Real finalTime = 0.070;
+
+  /// The artifact metric is evaluated this long after the command, so that the
+  /// current-zero wait and the exponential ramp have both finished.
+  Real artifactDelay = 0.011;
+
+  Real artifactTolerance = 1.0;
 };
 
 struct RunResult {
@@ -101,10 +107,13 @@ struct RunResult {
 
   Int expectedMatrixRecomputations = 0;
 
+  Real artifactRatio = -1.0;
+
   Bool passCommandState = false;
   Bool passPoleState = false;
   Bool passResistanceState = false;
   Bool passTransitionState = false;
+  Bool passArtifact = false;
   Bool passOverall = false;
 };
 
@@ -174,6 +183,34 @@ Bool nearlyEqual(Real a, Real b, Real relTol = 1e-9, Real absTol = 1e-12) {
   return std::abs(a - b) <= std::max(absTol, relTol * scale);
 }
 
+/// Amplitude of the alternating component at the step frequency, relative to
+/// the mean level: the trapezoidal artifact after a discontinuity
+Real alternatingRatio(const std::vector<Complex> &samples) {
+  const std::size_t count = samples.size();
+
+  if (count < 8)
+    return -1.0;
+
+  Complex mean = 0.0;
+
+  for (const auto &sample : samples)
+    mean += sample;
+
+  mean /= static_cast<Real>(count);
+
+  Complex alternating = 0.0;
+  Real sign = 1.0;
+
+  for (const auto &sample : samples) {
+    alternating += sign * (sample - mean);
+    sign = -sign;
+  }
+
+  alternating /= static_cast<Real>(count);
+
+  return std::abs(alternating) / std::max(std::abs(mean), 1e-9);
+}
+
 void evaluateRunResult(const Parameters &p, RunResult &result) {
   const Bool expectedClosed = result.targetClosed;
 
@@ -211,8 +248,14 @@ void evaluateRunResult(const Parameters &p, RunResult &result) {
     result.passTransitionState = !result.exponentialActiveFinal;
   }
 
+  // Ideal switching is deliberately left untouched, so its residual
+  // oscillation is expected. Domains without a metric are not asserted.
+  result.passArtifact = result.mode == "Ideal" || result.artifactRatio < 0.0 ||
+                        result.artifactRatio < p.artifactTolerance;
+
   result.passOverall = result.passCommandState && result.passPoleState &&
-                       result.passResistanceState && result.passTransitionState;
+                       result.passResistanceState &&
+                       result.passTransitionState && result.passArtifact;
 }
 
 String makeRunTimestamp() {
@@ -278,6 +321,8 @@ void writeSummary(const String &resultsDir,
       << "pass_pole_state,"
       << "pass_resistance_state,"
       << "pass_transition_state,"
+      << "artifact_ratio,"
+      << "pass_artifact,"
       << "pass_overall\n";
 
   for (const auto &r : results) {
@@ -297,7 +342,8 @@ void writeSummary(const String &resultsDir,
         << static_cast<Int>(r.passCommandState) << ","
         << static_cast<Int>(r.passPoleState) << ","
         << static_cast<Int>(r.passResistanceState) << ","
-        << static_cast<Int>(r.passTransitionState) << ","
+        << static_cast<Int>(r.passTransitionState) << "," << r.artifactRatio
+        << "," << static_cast<Int>(r.passArtifact) << ","
         << static_cast<Int>(r.passOverall) << "\n";
   }
 }
@@ -1119,13 +1165,28 @@ RunResult runDPPh1(const Parameters &p, const SystemTopology &systemPF,
 
   sim.addEvent(event);
 
+  const Real artifactStart = eventTime + p.artifactDelay;
+
+  std::vector<Complex> breakerVoltageSamples;
+
   const auto wallStart = std::chrono::steady_clock::now();
 
-  sim.run();
+  sim.start();
+
+  while (sim.time() < p.finalTime + DOUBLE_EPSILON) {
+    sim.next();
+
+    if (sim.time() >= artifactStart)
+      breakerVoltageSamples.push_back((**breakerVoltage)(0, 0));
+  }
+
+  sim.stop();
 
   const auto wallEnd = std::chrono::steady_clock::now();
 
   RunResult result;
+
+  result.artifactRatio = alternatingRatio(breakerVoltageSamples);
 
   result.domain = "DP1Ph";
 
@@ -1257,7 +1318,12 @@ int main() {
       ++passed;
 
     std::cout << r.domain << " " << r.mode << " " << r.direction << ": "
-              << (r.passOverall ? "PASS" : "FAIL") << "\n";
+              << (r.passOverall ? "PASS" : "FAIL");
+
+    if (r.artifactRatio >= 0.0)
+      std::cout << " (artifact " << r.artifactRatio << ")";
+
+    std::cout << "\n";
   }
 
   std::cout << "Regression: " << passed << "/" << results.size()

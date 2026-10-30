@@ -141,6 +141,10 @@ set(SYNCGEN_SOURCES
 	Components/EMT_SynchronGenerator9OrderDCIM_LoadStep_TurbineGovernor_Exciter.cpp
 	Components/EMT_SynchronGenerator9OrderVBR_LoadStep_TurbineGovernor_Exciter.cpp
 	Components/EMT_DP_Switch_3Mode_Benchmark.cpp
+	Components/DP_Switch_GroupCorrection.cpp
+	Components/DP_Switch_Ph3PerPoleClearing.cpp
+	Components/DP_Switch_CorrectionMeasurements.cpp
+	Components/DP_Switch_MachineConverter.cpp
 )
 
 set(INVERTER_SOURCES
@@ -241,6 +245,8 @@ if(WITH_CIM)
 		CIM/WSCC-9bus_CIM.cpp
 		CIM/WSCC-9bus_CIM_Dyn.cpp
 		CIM/WSCC-9bus_CIM_Dyn_Switch.cpp
+		CIM/WSCC9_Switch_ZCS_Benchmark.cpp
+		CIM/DP_Switch_GridScaleProbe.cpp
 		CIM/SP_WSCC-9bus_CIM_Dyn_Switch.cpp
 		CIM/EMT_WSCC-9bus_IdealVS.cpp
 		CIM/EMT_WSCC-9bus_IdealCS.cpp
