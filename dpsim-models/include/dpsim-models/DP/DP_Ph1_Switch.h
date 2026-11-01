@@ -14,12 +14,14 @@
 #include <dpsim-models/Definitions.h>
 #include <dpsim-models/Logger.h>
 #include <dpsim-models/MNASimPowerComp.h>
+#include <dpsim-models/Solver/MNACompensatedInterface.h>
 #include <dpsim-models/Solver/MNASwitchInterface.h>
 #include <dpsim-models/Solver/MNAVariableCompInterface.h>
 
 namespace CPS {
 namespace DP {
 namespace Ph1 {
+class ZeroSequenceEquivalent;
 /// \brief Dynamic phasor switch
 ///
 /// The switch can be opened and closed.
@@ -52,17 +54,25 @@ namespace Ph1 {
 ///   open the poles one by one at their current zeros (Dommel). The network
 ///   enters through its time-domain Thevenin equivalents across the breaker,
 ///   positive and zero sequence. Assumes a linear, symmetric network.
+///
+/// - SpaceVector:
+///   the network pole stays open; the solver injects the current as space
+///   vector (MNACompensatedInterface), the zero sequence through a shared
+///   zero-sequence network. One condition per pole on instantaneous values:
+///   closed v + R i = 0, open i = 0. A pole mask gives unsymmetrical faults.
 class Switch : public MNASimPowerComp<Complex>,
                public Base::Ph1::Switch,
                public SharedFactory<Switch>,
                public MNASwitchInterface,
-               public MNAVariableCompInterface {
+               public MNAVariableCompInterface,
+               public MNACompensatedInterface {
 public:
   enum class SwitchingMode {
     Ideal = 0,
     CurrentZero = 1,
     ExponentialZCSEmulation = 2,
     Compensated = 3,
+    SpaceVector = 4,
   };
 
   const Attribute<Bool>::Ptr mOpeningRequested;
@@ -133,7 +143,8 @@ public:
     Bool zeroSequence = true;
   };
   /// Compensated: positive- and zero-sequence equivalents and the observed
-  /// nodes; each node gets compensation_v_<name>, its phase voltage corrections.
+  /// nodes; each node gets compensation_v_<name>, its phase voltage
+  /// corrections.
   void setTheveninEquivalents(const TheveninEquivalent &positive,
                               const TheveninEquivalent &zero,
                               const std::vector<ObservedNode> &nodes);
@@ -145,6 +156,22 @@ public:
   /// to the network storage elements as space vector and open the network
   /// pole; the zero sequence stays in its equivalent.
   void setNetworkHandover(Bool enabled) { mCompHandover = enabled; }
+
+  /// SpaceVector: zero-sequence network and the port of this switch in it
+  void setZeroSequenceNetwork(const std::shared_ptr<ZeroSequenceEquivalent> &network,
+                              UInt port) {
+    mZeroNetwork = network;
+    mZeroPort = port;
+  }
+  /// SpaceVector: poles that exist; the others stay open, e.g. a
+  /// single-phase fault {true, false, false}
+  void setPoleMask(const std::array<Bool, 3> &mask) { mPoleMask = mask; }
+  /// SpaceVector: an opening interrupts each pole at its current zero
+  /// (default) or all poles at once
+  void setCurrentZeroOpening(Bool enabled) { mCurrentZeroOpening = enabled; }
+  /// SpaceVector: a pole whose current zero is detected interrupts in the same
+  /// step (default) instead of the next one
+  void setSameStepOpening(Bool enabled) { mSameStepOpening = enabled; }
 
   void openSwitch() override;
   void closeSwitch() override;
@@ -189,6 +216,19 @@ public:
   std::vector<SwitchedPole> takeSwitchedPoles() override;
   std::vector<StateHandover> takeStateHandover() override;
 
+  // #### MNA section for compensation ####
+  Bool mnaIsCompensated() const override {
+    return mSwitchingMode == SwitchingMode::SpaceVector;
+  }
+  std::vector<std::pair<Int, Int>> mnaCompensationTerminals() override;
+  MNAZeroSequenceNetwork::Ptr mnaZeroSequenceNetwork() override;
+  std::vector<UInt> mnaZeroSequencePorts() override { return {mZeroPort}; }
+  void mnaCompensationConditions(Real time, Matrix &a, Matrix &b,
+                                 Matrix &c) override;
+  Bool mnaCompensationResult(Real time, const Matrix &injection,
+                             const Matrix &zeroCurrent,
+                             const Matrix &phaseCurrent) override;
+
   // #### MNA section for variable component ####
   Bool hasParameterChanged() override;
 
@@ -230,6 +270,20 @@ private:
   Int mCompInstCount = 0;
   // the last smoothed value is from a step after the opening command
   Bool mCompArmed = false;
+  // SpaceVector: injected space vector and zero-sequence current
+  Complex mSvCurrent{0., 0.};
+  Real mSvZeroCurrent = 0.;
+  Bool mSameStepOpening = true;
+  Bool mCurrentZeroOpening = true;
+  std::array<Bool, 3> mPoleMask{true, true, true};
+  std::shared_ptr<ZeroSequenceEquivalent> mZeroNetwork;
+  UInt mZeroPort = 0;
+  // time of the last solve; a repeated solve in the same step keeps the pole
+  // current history
+  Real mSvResultTime = -1.;
+  // currents of the latest solve, taken into the history in the next step
+  std::array<Real, 3> mSvPendingCurrent{};
+  Bool mSvArmedStep = false;
   std::array<Bool, 3> mCompOpen{};
   Bool mCompStarted = false;
   Bool mCompHandover = false;
@@ -264,6 +318,34 @@ private:
                                    Real previousTime, Real currentTime) const;
 
   void updateZeroCrossingState(Real time);
+};
+
+/// \brief Zero-sequence network seen from the ports of compensated switches,
+/// a time-domain Thevenin equivalent; observed nodes get
+/// compensation_v_<name>, the zero-sequence part of their phase voltages.
+class ZeroSequenceEquivalent : public IdentifiedObject,
+                               public MNAZeroSequenceNetwork,
+                               public SharedFactory<ZeroSequenceEquivalent> {
+public:
+  const Attribute<Int>::Ptr mTheveninIndex;
+
+  ZeroSequenceEquivalent(String name, UInt ports,
+                         const Switch::TheveninEquivalent &equivalent,
+                         const std::vector<Switch::ObservedNode> &nodes);
+  /// A further set; returns its thevenin_index
+  Int addEquivalent(const Switch::TheveninEquivalent &equivalent);
+
+  Matrix zeroFreeVoltage() override;
+  Matrix zeroVoltageResponse() override;
+  void zeroAdvance(const Matrix &input) override;
+
+private:
+  UInt mPorts;
+  std::vector<Switch::TheveninEquivalent> mSets;
+  std::vector<Switch::ObservedNode> mNodes;
+  std::vector<Attribute<MatrixComp>::Ptr> mCorrections;
+  Matrix mState;
+  const Switch::TheveninEquivalent &current() const;
 };
 } // namespace Ph1
 } // namespace DP

@@ -52,6 +52,119 @@ from power flow with `RMS3PH_TO_PEAK1PH`, while `DP::Ph1` keeps the power-flow s
 reconstructed `i_instantaneous` of `DP::Ph1` is in envelope scaling. The zero-crossing instant does
 not depend on it, which is why the detection is shared.
 
+### Compensated mode (DP::Ph1)
+
+`DP::Ph1::Switch` has a fourth mode, `Compensated`, for a three-phase breaker in a single-phase DP
+network. The network pole stays closed. After the opening command (`compensation_active`), the
+switch computes per step the compensation currents `compensation_current` (3x1) that open the three
+poles one by one at the zero of their own current: closed poles hold zero voltage across the
+breaker, open poles carry the negated closed-run current (Dommel compensation). The zero is sought
+on the smoothed instantaneous pole current `(3 x[k] + 2 x[k-1] - x[k-2]) / 4`, exact for a linear
+course and zero for an alternation `(-1)^k`, so that the undamped step-to-step oscillation the
+trapezoidal rule keeps after a switching (e.g. reclosing onto a line) cannot fake one; the history
+is kept from before the opening command on.
+
+The network enters through two discrete time-domain Thevenin equivalents seen across the open
+breaker, `setTheveninEquivalents(positive, zero, nodes)`, positive sequence for `D - mean(D)`
+and zero sequence for `mean(D)`. Each is a state-space model `x[k] = A x[k-1] + B u[k]`,
+`y[k] = C x[k-1] + D u[k]` with the current `(re, im)` into terminal 1 as input and `(re, im)` of
+`v0 - v1`, then of each observed node voltage, as output. Observed nodes get the attribute
+`compensation_v_<name>` with the phase voltage corrections, 3x1 envelopes in the phase-a frame.
+An observed node behind a phase-shifting transformer (e.g. Yd5) carries the shift `phaseShift`
+that the single-phase equivalents contain for the positive sequence; the switch gives the
+negative sequence the opposite shift and drops the zero sequence if `zeroSequence` is false.
+
+`DPsim::extractTheveninEquivalent()` builds the equivalents from a passive topology by the MNA
+state-space extraction: open breaker present (without it the solver splits the topology into two
+subnetworks), sources as they are, components only those the extraction supports. The zero-sequence
+equivalent comes from the same topology with zero-sequence parameters. With `subSteps > 1` it is
+extracted at `timeStep / subSteps` and aggregated to `timeStep` with the outputs averaged over the
+sub-steps; at 1 ms this is clearly more accurate than the extraction at 1 ms.
+
+A change of the topology behind the breaker while compensating, e.g. the end of a fault, takes a
+further set from `addTheveninEquivalents(positive, zero)`, extracted from the same components in the
+other switching state. `thevenin_index` selects the set, typically switched by an `AttributeEvent`
+at the same instant as the topology event; the states carry over, since they are the same inductor
+currents and capacitor voltages.
+
+Without a handover the network pole stays closed for good, so only the observed nodes are right.
+`setNetworkHandover(true)` hands the states over to the network once all poles are open and opens
+the network pole. A symmetric three-phase network is, in the space vector, exactly a complex
+single-phase network, so the DP::Ph1 network can carry positive and negative sequence: the negative
+sequence is an envelope at `-2 omega`, and the complex ratio of a phase-shifting transformer turns
+both sequences correctly. The switch takes the instantaneous voltage and current of every storage
+element at the end of the step (maps `Ex`, `Eu` from the extraction, per phase), forms their space
+vector `P + conj(N) e^(-2 j omega t)` in the phase-a frame and adds it to the network element of the
+same name (`MNASwitchInterface::takeStateHandover()`, applied by the solver before the next solve
+through `mnaCorrectionAddState()`; the solver checks name, terminal nodes and value, and each element
+rebuilds its own history from voltage and current, so the network may run at a coarser step than the
+extraction). The per-phase equivalents are reset; only the zero sequence stays in its equivalent.
+Elements at an observed node with `phaseShift` (behind a phase-shifting transformer) get the opposite
+shift for the negative sequence.
+
+Why the space vector and not the symmetrical components of the envelopes: a DP envelope of a real
+signal is not unique, only its real part is. After an opening at a current zero the per-phase
+envelopes carry large parts that are invisible in the instantaneous value (Testfall 1, line side
+after the opening: about 590 kV positive and negative sequence each, 115 kV phase voltage). Split
+into sequences these cancel only as long as both are integrated alike; handed over separately they
+did not (up to 19 pu at the line side). The space vector of the instantaneous values drops them.
+
+Testfall 1 (`SP_DP_EMT_TOV_LoadRejection`, vs EMT 1 us): at 50 us the observed nodes keep their
+accuracy through the handover, and every node, observed or not, is at DP3 50 us level from one
+period after the opening on. At 1 ms the handover helps the nodes on the grid side, while the
+isolated line side, whose own oscillation the 1 ms network cannot resolve, gets worse than without
+handover.
+
+Assumptions: linear, phase-symmetric network behind the breaker with Z2 = Z1, ideal current-zero
+interruption, every topology behind the breaker known in advance, for the handover only DP::Ph1
+inductors and capacitors as storage elements. Closing (`closeSwitch()`) closes all poles together.
+Example: `SP_DP_EMT_TOV_LoadRejection` with `comp=on` (`handover=off` for comparison).
+
+### Space-vector mode (DP::Ph1)
+
+`SpaceVector` is the fifth mode of `DP::Ph1::Switch`. The network pole is stamped open for good, and
+the solver injects the current as space vector `I` between the terminals (Dommel compensation
+through `MNACompensatedInterface`): per step it solves without the injections, then fixes `I` and the
+zero-sequence current `i0` of every compensated port jointly, and adds the network's response to the
+injections to the solution (`x = x0 + r I`; `r` is solved once per factorization). Phase `p` of a
+port carries `Re{a^-p I e^(j omega t)} + i0` into terminal 1 and the voltage
+`Re{a^-p V e^(j omega t)} + Re{V0 e^(j omega t)}`, `V` from the DP::Ph1 network, `V0` from the
+zero-sequence network fed with the envelope `i0 e^(-j omega t)`.
+
+Each pole gives one real condition on these instantaneous values: closed `v + R i = 0` with the closed
+resistance, open `i = 0`. With all poles closed this is a closed switch, with all open no injection.
+A pole mask (`setPoleMask()`) makes the switch an unsymmetrical element, e.g. a single-phase fault
+between ground and a node; `setCurrentZeroOpening(false)` opens all poles at once (fault end),
+otherwise each pole opens at the zero of its smoothed current as in the compensated mode, in the same
+step (`setSameStepOpening()`). Since the DP::Ph1 network is the space-vector model of the symmetric
+three-phase network, every node carries positive and negative sequence at all times, also nodes
+nobody observes and non-linear components such as converters.
+
+The zero sequence of all compensated ports is one `DP::Ph1::ZeroSequenceEquivalent`, a discrete
+Thevenin equivalent with one input and output per port (`extractTheveninEquivalent()` with a list of
+ports, a null node meaning ground), set on every switch with `setZeroSequenceNetwork(network, port)`.
+Its observed nodes get `compensation_v_<name>` with the zero-sequence part of their phase voltages;
+`thevenin_index` selects a set if the topology behind the ports changes otherwise than through the
+compensated switches themselves.
+
+Testfall 1 (`SP_DP_EMT_TOV_LoadRejection`, `comp=sv`, breaker and fault at B2 compensated): at 50 us
+as accurate as DP3 at 50 us at every node, including the unobserved test node already while the poles
+open; single-phase and two-phase-to-ground faults (`faultType=1ph|2ph`) at DP3 level at 50 and 200 us,
+during the fault and after it. Cost about 10 % over plain DP::Ph1. From 500 us on the window between
+first and last pole opening is less accurate than DP3: the negative sequence runs in the DP::Ph1
+envelope at `-2 omega`, where the trapezoidal rule warps the reactance by about 1.5 % at 500 us and
+7 % at 1 ms.
+
+The zero-sequence equivalent keeps its outputs averaged over the extraction sub-steps: with the values
+at the end of the step instead, the coupling to the network becomes unstable from 500 us on.
+A pole may also open in a repeated solve of the same step; the history of the pole currents takes
+only the final currents of each step.
+
+Limits: the solver refuses compensated components together with iterating synchronous generators or
+frequency-parallel solves; the zero-crossing rewind of the quadrature correction solves without the
+injections. The conditions are one per phase, so a phase-to-phase fault without ground or an open
+conductor with coupled phases needs per-port 3x3 conditions, not yet there.
+
 ### varResSwitch
 
 `varResSwitch` also implements `MNAVariableCompInterface`, which is what allows it to change

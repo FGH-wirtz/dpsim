@@ -28,6 +28,22 @@ extractTheveninEquivalent(SystemTopology &system, Real timeStep,
                           const SimNode<Complex>::Ptr &node1,
                           const std::vector<SimNode<Complex>::Ptr> &observed,
                           UInt subSteps) {
+  return extractTheveninEquivalent(system, timeStep, {{node0, node1}},
+                                   observed, subSteps);
+}
+
+DP::Ph1::Switch::TheveninEquivalent extractTheveninEquivalent(
+    SystemTopology &system, Real timeStep,
+    const std::vector<std::pair<SimNode<Complex>::Ptr, SimNode<Complex>::Ptr>>
+        &ports,
+    const std::vector<SimNode<Complex>::Ptr> &observed, UInt subSteps,
+    Bool averageOutputs) {
+  if (ports.empty())
+    throw std::invalid_argument("extractTheveninEquivalent: no port.");
+  for (auto &port : ports)
+    if (!port.first && !port.second)
+      throw std::invalid_argument(
+          "extractTheveninEquivalent: port with both ends grounded.");
   const UInt m = std::max<UInt>(subSteps, 1);
   const Real h = timeStep / m;
   Simulation sim("TheveninExtraction", Logger::Level::off);
@@ -38,32 +54,41 @@ extractTheveninEquivalent(SystemTopology &system, Real timeStep,
   sim.doStateSpaceExtraction(true);
   sim.start();
 
-  // unit real and imaginary current into node1, out of node0
+  // per port unit real and imaginary current into node1, out of node0; a
+  // null node is ground
   auto &extractor = sim.getStateSpaceExtractor();
   const Matrix::Index n = extractor.getMnaInputMatrix().cols();
-  Matrix injection = Matrix::Zero(n, 2);
-  for (int c = 0; c < 2; ++c) {
-    Matrix col = Matrix::Zero(n, 1);
-    const Complex i = c == 0 ? Complex(1., 0.) : Complex(0., 1.);
-    Math::addToVectorElement(col, node1->matrixNodeIndex(), i);
-    Math::addToVectorElement(col, node0->matrixNodeIndex(), -i);
-    injection.col(c) = col;
-  }
+  const Matrix::Index k = static_cast<Matrix::Index>(ports.size());
+  Matrix injection = Matrix::Zero(n, 2 * k);
+  for (Matrix::Index j = 0; j < k; ++j)
+    for (int c = 0; c < 2; ++c) {
+      Matrix col = Matrix::Zero(n, 1);
+      const Complex i = c == 0 ? Complex(1., 0.) : Complex(0., 1.);
+      if (ports[j].second)
+        Math::addToVectorElement(col, ports[j].second->matrixNodeIndex(), i);
+      if (ports[j].first)
+        Math::addToVectorElement(col, ports[j].first->matrixNodeIndex(), -i);
+      injection.col(2 * j + c) = col;
+    }
   extractor.setInjection(injection);
   sim.step();
   sim.stop();
 
-  // outputs: v0 - v1, then the observed node voltages, (re, im) each
-  Matrix select = Matrix::Zero(2 + 2 * observed.size(), n);
+  // outputs: v0 - v1 per port, then the observed node voltages, (re, im) each
+  Matrix select = Matrix::Zero(2 * k + 2 * observed.size(), n);
   auto add = [&](Matrix::Index row, const SimNode<Complex>::Ptr &node,
                  Real sign) {
+    if (!node)
+      return;
     select(row, node->matrixNodeIndex()) += sign;
     select(row + 1, node->matrixNodeIndex() + n / 2) += sign;
   };
-  add(0, node0, 1.);
-  add(0, node1, -1.);
+  for (Matrix::Index j = 0; j < k; ++j) {
+    add(2 * j, ports[j].first, 1.);
+    add(2 * j, ports[j].second, -1.);
+  }
   for (std::size_t i = 0; i < observed.size(); ++i)
-    add(2 + 2 * i, observed[i], 1.);
+    add(2 * k + 2 * i, observed[i], 1.);
 
   DP::Ph1::Switch::TheveninEquivalent eq;
   eq.A = extractor.getDiscreteStateMatrix();
@@ -154,8 +179,10 @@ extractTheveninEquivalent(SystemTopology &system, Real timeStep,
       };
   for (auto comp : system.mComponents)
     collect(std::dynamic_pointer_cast<MNAInterface>(comp));
-  std::map<String, Real> shift{{node0->name(), 0.}};
-  std::deque<String> queue{node0->name()};
+  const String start = ports[0].first ? ports[0].first->name()
+                                      : ports[0].second->name();
+  std::map<String, Real> shift{{start, 0.}};
+  std::deque<String> queue{start};
   while (!queue.empty()) {
     const String at = queue.front();
     queue.pop_front();
@@ -195,16 +222,18 @@ extractTheveninEquivalent(SystemTopology &system, Real timeStep,
   Matrix cBar = Matrix::Zero(eq.C.rows(), ns);
   Matrix dBar = Matrix::Zero(eq.D.rows(), eq.D.cols());
   for (UInt i = 0; i < m; ++i) {
-    cBar += eq.C * power;
-    dBar += eq.C * sum * eq.B + eq.D;
+    if (averageOutputs || i + 1 == m) {
+      cBar += eq.C * power;
+      dBar += eq.C * sum * eq.B + eq.D;
+    }
     sum += power;
     power = eq.A * power;
   }
   DP::Ph1::Switch::TheveninEquivalent agg;
   agg.A = power;
   agg.B = sum * eq.B;
-  agg.C = cBar / m;
-  agg.D = dBar / m;
+  agg.C = averageOutputs ? Matrix(cBar / m) : cBar;
+  agg.D = averageOutputs ? Matrix(dBar / m) : dBar;
   agg.stateNames = eq.stateNames;
   agg.elements = eq.elements;
   agg.Ex = eq.Ex;

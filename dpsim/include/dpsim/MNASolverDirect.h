@@ -11,6 +11,7 @@
 #include <bitset>
 #include <iostream>
 #include <list>
+#include <map>
 #include <memory>
 #include <unordered_map>
 #include <vector>
@@ -39,6 +40,7 @@
 #include <dpsim-models/AttributeList.h>
 #include <dpsim-models/SimPowerComp.h>
 #include <dpsim-models/SimSignalComp.h>
+#include <dpsim-models/Solver/MNACompensatedInterface.h>
 #include <dpsim-models/Solver/MNASwitchInterface.h>
 #include <dpsim-models/Solver/MNAVariableCompInterface.h>
 #include <dpsim/MNASolver.h>
@@ -126,6 +128,13 @@ protected:
                                  const SparseMatrix &systemMatrix, Real time);
   /// Re-runs every right-side stamp and sums them
   void assembleRightSide();
+  /// Compensated components and, per factorization, the network response to
+  /// their unit injections
+  CPS::MNACompensatedInterface::List mCompensated;
+  Bool mCompensatedCollected = false;
+  std::map<const DirectLinearSolver *, Matrix> mCompensationResponse;
+  /// Adds the injections of the compensated components to the solution
+  void applyCompensation(DirectLinearSolver &linearSolver, Real time);
   /// Adds the states the switches hand over to the storage elements and
   /// re-assembles the right side. True if there were any.
   Bool applyStateHandover();

@@ -6,6 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *********************************************************************************/
 
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <stdexcept>
@@ -60,6 +61,7 @@ void MnaSolverDirect<VarType>::switchedMatrixStamp(
                                               mListVariableSystemMatrixEntries);
   auto start = std::chrono::steady_clock::now();
   mDirectLinearSolvers[bit][0]->factorize(sys);
+  mCompensationResponse.clear();
   auto end = std::chrono::steady_clock::now();
   std::chrono::duration<Real> diff = end - start;
   mFactorizeTimes.push_back(diff.count());
@@ -106,6 +108,7 @@ void MnaSolverDirect<VarType>::stampVariableSystemMatrix() {
 
   auto start = std::chrono::steady_clock::now();
   mDirectLinearSolverVariableSystemMatrix->factorize(mVariableSystemMatrix);
+  mCompensationResponse.clear();
   auto end = std::chrono::steady_clock::now();
   std::chrono::duration<Real> diff = end - start;
   mFactorizeTimes.push_back(diff.count());
@@ -149,6 +152,8 @@ void MnaSolverDirect<VarType>::solveWithSystemMatrixRecomputation(
     applyQuadratureCorrection(*mDirectLinearSolverVariableSystemMatrix,
                               mVariableSystemMatrix, time);
 
+  applyCompensation(*mDirectLinearSolverVariableSystemMatrix, time);
+
   // For the next prepareStep(), the first point a rule change still reaches
   if (!mIsInInitialization && mVariableComponentChanged)
     mVariableComponentChangedLastStep = true;
@@ -180,6 +185,7 @@ UInt MnaSolverDirect<VarType>::setIntegrationRule(
     varElem->mnaApplySystemMatrixStamp(mVariableSystemMatrix);
 
   mDirectLinearSolverVariableSystemMatrix->factorize(mVariableSystemMatrix);
+  mCompensationResponse.clear();
   return declined;
 }
 
@@ -217,6 +223,7 @@ void MnaSolverDirect<VarType>::recomputeSystemMatrix(Real time) {
   auto start = std::chrono::steady_clock::now();
   mDirectLinearSolverVariableSystemMatrix->partialRefactorize(
       mVariableSystemMatrix, mListVariableSystemMatrixEntries);
+  mCompensationResponse.clear();
   auto end = std::chrono::steady_clock::now();
   std::chrono::duration<Real> diff = end - start;
   mRecomputationTimes.push_back(diff.count());
@@ -446,6 +453,201 @@ Bool MnaSolverDirect<VarType>::applyStateHandover() {
 }
 
 template <typename VarType>
+void MnaSolverDirect<VarType>::applyCompensation(
+    DirectLinearSolver &linearSolver, Real time) {
+  if (!mCompensatedCollected) {
+    auto collect = [&](const CPS::MNAInterface::List &list) {
+      for (auto comp : list)
+        if (auto c = std::dynamic_pointer_cast<CPS::MNACompensatedInterface>(comp))
+          if (c->mnaIsCompensated() &&
+              std::find(mCompensated.begin(), mCompensated.end(), c) ==
+                  mCompensated.end())
+            mCompensated.push_back(c);
+    };
+    collect(mMNAComponents);
+    collect(mMNAIntfVariableComps);
+    collect(mMNAIntfSwitches);
+    mCompensatedCollected = true;
+  }
+  if (mCompensated.empty())
+    return;
+
+  if constexpr (!std::is_same<VarType, Complex>::value) {
+    throw std::runtime_error(
+        "MnaSolverDirect: compensated components need the DP domain.");
+  } else {
+    // ports of all components, with their zero-sequence network and index
+    struct Port {
+      std::size_t comp;
+      std::pair<Int, Int> nodes;
+      CPS::MNAZeroSequenceNetwork::Ptr zero;
+      UInt zeroIndex;
+    };
+    std::vector<Port> ports;
+    std::vector<CPS::MNAZeroSequenceNetwork::Ptr> networks;
+    std::vector<Matrix::Index> firstPort;
+    for (std::size_t c = 0; c < mCompensated.size(); ++c) {
+      firstPort.push_back(static_cast<Matrix::Index>(ports.size()));
+      const auto terminals = mCompensated[c]->mnaCompensationTerminals();
+      const auto zero = mCompensated[c]->mnaZeroSequenceNetwork();
+      const auto indices = mCompensated[c]->mnaZeroSequencePorts();
+      if (!zero || indices.size() != terminals.size())
+        throw std::runtime_error("MnaSolverDirect: compensated ports need a "
+                                 "zero-sequence network.");
+      for (std::size_t j = 0; j < terminals.size(); ++j)
+        ports.push_back({c, terminals[j], zero, indices[j]});
+      if (std::find(networks.begin(), networks.end(), zero) == networks.end())
+        networks.push_back(zero);
+    }
+    const Matrix::Index k = static_cast<Matrix::Index>(ports.size());
+
+    Matrix &x = **mLeftSideVector;
+    const Matrix::Index n = x.rows();
+    // v1 - v0 (re, im) per port from MNA vectors
+    auto voltages = [&](const Matrix &v) {
+      Matrix out = Matrix::Zero(2 * k, v.cols());
+      for (Matrix::Index j = 0; j < k; ++j)
+        for (Matrix::Index c = 0; c < v.cols(); ++c) {
+          const Matrix col = v.col(c);
+          Complex u(0., 0.);
+          if (ports[j].nodes.second >= 0)
+            u += Math::complexFromVectorElement(col, ports[j].nodes.second);
+          if (ports[j].nodes.first >= 0)
+            u -= Math::complexFromVectorElement(col, ports[j].nodes.first);
+          out(2 * j, c) = u.real();
+          out(2 * j + 1, c) = u.imag();
+        }
+      return out;
+    };
+    // network response to unit (re, im) injections, once per factorization
+    auto it = mCompensationResponse.find(&linearSolver);
+    if (it == mCompensationResponse.end()) {
+      Matrix r(n, 2 * k);
+      for (Matrix::Index j = 0; j < k; ++j)
+        for (int part = 0; part < 2; ++part) {
+          Matrix b = Matrix::Zero(n, 1);
+          const Complex unit = part == 0 ? Complex(1., 0.) : Complex(0., 1.);
+          if (ports[j].nodes.second >= 0)
+            Math::addToVectorElement(b, ports[j].nodes.second, unit);
+          if (ports[j].nodes.first >= 0)
+            Math::addToVectorElement(b, ports[j].nodes.first, -unit);
+          r.col(2 * j + part) = linearSolver.solve(b);
+        }
+      it = mCompensationResponse.emplace(&linearSolver, r).first;
+    }
+    const Matrix &r = it->second;
+    const Matrix open = voltages(x);
+    const Matrix response = voltages(r);
+
+    // zero-sequence networks: free voltages and responses per port
+    std::vector<Matrix> zeroFree, zeroResponse;
+    for (auto &net : networks) {
+      zeroFree.push_back(net->zeroFreeVoltage());
+      zeroResponse.push_back(net->zeroVoltageResponse());
+    }
+    auto networkOf = [&](Matrix::Index j) {
+      return static_cast<std::size_t>(
+          std::find(networks.begin(), networks.end(), ports[j].zero) -
+          networks.begin());
+    };
+
+    // unknowns (Re I_j, Im I_j) for all ports, then i0_j; the zero-sequence
+    // input of a port is the envelope i0 e^(-j w t)
+    const Real wt = this->mSystem.mSystemOmega * time;
+    const Complex carrier = std::polar<Real>(1.0, wt);
+    const Complex zeroEnvelope = std::polar<Real>(1.0, -wt);
+    Matrix z;
+    for (int pass = 0; pass < 4; ++pass) {
+      Matrix m = Matrix::Zero(3 * k, 3 * k), rhs = Matrix::Zero(3 * k, 1);
+      for (std::size_t c = 0; c < mCompensated.size(); ++c) {
+        Matrix a, b, g;
+        mCompensated[c]->mnaCompensationConditions(time, a, b, g);
+        const Matrix::Index j0 = firstPort[c];
+        for (Matrix::Index row = 0; row < a.rows(); ++row) {
+          const Matrix::Index j = j0 + row / 3;
+          const int p = static_cast<int>(row % 3);
+          const Matrix::Index eq = 3 * j + p;
+          const Complex rot = std::polar<Real>(1.0, -2. * PI * p / 3.) * carrier;
+          // instantaneous voltage: Re{rot (open + R I)} + Re{carrier V0}
+          for (Matrix::Index l = 0; l < k; ++l) {
+            m(eq, 2 * l) += a(row, 0) * (rot.real() * response(2 * j, 2 * l) -
+                                         rot.imag() * response(2 * j + 1, 2 * l));
+            m(eq, 2 * l + 1) +=
+                a(row, 0) * (rot.real() * response(2 * j, 2 * l + 1) -
+                             rot.imag() * response(2 * j + 1, 2 * l + 1));
+          }
+          const std::size_t net = networkOf(j);
+          const Matrix::Index zj = ports[j].zeroIndex;
+          for (Matrix::Index l = 0; l < k; ++l) {
+            if (networkOf(l) != net)
+              continue;
+            const Matrix::Index zl = ports[l].zeroIndex;
+            const Matrix &g0 = zeroResponse[net];
+            const Complex perAmp(
+                g0(2 * zj, 2 * zl) * zeroEnvelope.real() +
+                    g0(2 * zj, 2 * zl + 1) * zeroEnvelope.imag(),
+                g0(2 * zj + 1, 2 * zl) * zeroEnvelope.real() +
+                    g0(2 * zj + 1, 2 * zl + 1) * zeroEnvelope.imag());
+            m(eq, 2 * k + l) += a(row, 0) * std::real(carrier * perAmp);
+          }
+          const Complex openV(open(2 * j, 0), open(2 * j + 1, 0));
+          const Complex zeroV(zeroFree[net](2 * zj, 0),
+                              zeroFree[net](2 * zj + 1, 0));
+          rhs(eq, 0) = g(row, 0) - a(row, 0) * (std::real(rot * openV) +
+                                                std::real(carrier * zeroV));
+          // instantaneous current: Re{rot I} + i0
+          m(eq, 2 * j) += b(row, 0) * rot.real();
+          m(eq, 2 * j + 1) -= b(row, 0) * rot.imag();
+          m(eq, 2 * k + j) += b(row, 0);
+        }
+      }
+      z = m.partialPivLu().solve(rhs);
+
+      // results; a component whose conditions changed asks for another pass
+      Bool again = false;
+      for (std::size_t c = 0; c < mCompensated.size(); ++c) {
+        const Matrix::Index j0 = firstPort[c];
+        const Matrix::Index kc =
+            (c + 1 < mCompensated.size() ? firstPort[c + 1] : k) - j0;
+        Matrix injection(2 * kc, 1), zero(kc, 1), phase(3 * kc, 1);
+        for (Matrix::Index j = 0; j < kc; ++j) {
+          const Complex current(z(2 * (j0 + j), 0), z(2 * (j0 + j) + 1, 0));
+          injection(2 * j, 0) = current.real();
+          injection(2 * j + 1, 0) = current.imag();
+          zero(j, 0) = z(2 * k + j0 + j, 0);
+          for (int p = 0; p < 3; ++p)
+            phase(3 * j + p, 0) =
+                std::real(std::polar<Real>(1.0, -2. * PI * p / 3.) * carrier *
+                          current) +
+                zero(j, 0);
+        }
+        again = mCompensated[c]->mnaCompensationResult(time, injection, zero,
+                                                       phase) ||
+                again;
+      }
+      if (!again)
+        break;
+      if (pass == 3)
+        throw std::runtime_error("MnaSolverDirect: compensated poles keep "
+                                 "changing within a step.");
+    }
+
+    // advance the zero-sequence networks, add the injections
+    for (std::size_t net = 0; net < networks.size(); ++net) {
+      Matrix input = Matrix::Zero(zeroResponse[net].cols(), 1);
+      for (Matrix::Index j = 0; j < k; ++j)
+        if (networkOf(j) == net) {
+          const Matrix::Index zj = ports[j].zeroIndex;
+          input(2 * zj, 0) += z(2 * k + j, 0) * zeroEnvelope.real();
+          input(2 * zj + 1, 0) += z(2 * k + j, 0) * zeroEnvelope.imag();
+        }
+      networks[net]->zeroAdvance(input);
+    }
+    x += r * z.topRows(2 * k);
+  }
+}
+
+template <typename VarType>
 void MnaSolverDirect<VarType>::solve(Real time, Int timeStepCount) {
   const auto previousSwitchStatus = mCurrentSwitchStatus;
   if (mQuadratureCorrector && !mIsInInitialization)
@@ -477,6 +679,8 @@ void MnaSolverDirect<VarType>::solve(Real time, Int timeStepCount) {
                                 mSwitchedMatrices[mCurrentSwitchStatus][0],
                                 time);
 
+    applyCompensation(*mDirectLinearSolvers[mCurrentSwitchStatus][0], time);
+
     if (Solver::mLogSolveTimes) {
       auto end = std::chrono::steady_clock::now();
       std::chrono::duration<Real> diff = end - start;
@@ -494,6 +698,9 @@ void MnaSolverDirect<VarType>::solve(Real time, Int timeStepCount) {
 
   // Additional solve steps for iterative models
   if (mSyncGen.size() > 0) {
+    if (!mCompensated.empty())
+      throw std::runtime_error("MnaSolverDirect: compensated components with "
+                               "iterating synchronous generators.");
     UInt numCompsRequireIter;
     do {
       // count synchronous generators that require iteration
@@ -549,6 +756,10 @@ void MnaSolverDirect<VarType>::solve(Real time, Int timeStepCount) {
 template <typename VarType>
 void MnaSolverDirect<VarType>::solveWithHarmonics(Real time, Int timeStepCount,
                                                   Int freqIdx) {
+  if (!mCompensated.empty())
+    throw std::runtime_error(
+        "MnaSolverDirect: compensated components with frequency parallel "
+        "solves.");
   mRightSideVectorHarm[freqIdx].setZero();
 
   // Sum of right side vectors (computed by the components' pre-step tasks)

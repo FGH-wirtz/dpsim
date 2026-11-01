@@ -24,4 +24,16 @@ extractTheveninEquivalent(CPS::SystemTopology &system, Real timeStep,
                           const std::vector<CPS::SimNode<Complex>::Ptr> &observed,
                           UInt subSteps = 1);
 
+/// The same with several ports (node0, node1), a null node meaning ground:
+/// inputs (re, im) of the current into node1 per port, outputs (re, im) of
+/// v0 - v1 per port, then of each observed node voltage. averageOutputs
+/// false: outputs at the end of the step instead of averaged over the
+/// sub-steps.
+CPS::DP::Ph1::Switch::TheveninEquivalent extractTheveninEquivalent(
+    CPS::SystemTopology &system, Real timeStep,
+    const std::vector<std::pair<CPS::SimNode<Complex>::Ptr,
+                                CPS::SimNode<Complex>::Ptr>> &ports,
+    const std::vector<CPS::SimNode<Complex>::Ptr> &observed,
+    UInt subSteps = 1, Bool averageOutputs = true);
+
 } // namespace DPsim

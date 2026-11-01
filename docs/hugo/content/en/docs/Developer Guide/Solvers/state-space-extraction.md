@@ -57,6 +57,17 @@ extractor = sim.get_state_space_extractor()
 Ad = extractor.get_discrete_state_matrix()
 ```
 
+
+`MNAStateSpaceExtractor::setInjection(b)` adds MNA source-vector columns of a current injection;
+`extract()` then also solves `Y xMNA = b` (`getMnaInjectionSolution()`, with `getMnaStateSolution()`
+for `Y^-1 CdMna` and `getMnaInputMatrix()` for `BdMna`). `Simulation::getStateSpaceExtractor()` has a
+non-const overload for this, to be called after `start()` and before the first step.
+`DPsim::extractTheveninEquivalent()` uses it for the time-domain Thevenin equivalent of a passive
+network between two nodes. The equivalent also carries the state names from the metadata and, for
+every DP::Ph1 inductor and capacitor, its name, terminal nodes and value and the maps from state
+and input to its voltage `K xMNA` and current `Y v + h` at the end of the step, taken from the last
+sub-step when aggregated; the compensated switch hands these over to the network.
+
 ## Modal analysis of the extracted model
 
 `StateSpaceModalAnalysis` is constructed from an `MNAStateSpaceExtractor` and computes the modes of
