@@ -178,8 +178,10 @@ void DP::Ph3::Transformer::initializeParentFromNodesAndTerminals(
   MatrixComp secondaryVoltage = initialVoltage(nonReferenceTerminal());
   mVirtualNodes[0]->setInitialVoltage(secondaryVoltage * mRatioFromReference);
 
-  Complex halfImpedance =
-      Complex(mResistance(0, 0) / 2., omega * mInductance(0, 0) / 2.);
+  // positive-sequence values: the matrices may carry a different zero sequence
+  const Real r1 = mResistance(0, 0) - mResistance(0, 1);
+  const Real l1 = mInductance(0, 0) - mInductance(0, 1);
+  Complex halfImpedance = Complex(r1 / 2., omega * l1 / 2.);
   Complex magnetizingAdmittance = Complex(0, 0);
   if (mSubMagnetizingInductor)
     magnetizingAdmittance =
@@ -198,9 +200,9 @@ void DP::Ph3::Transformer::initializeParentFromNodesAndTerminals(
     MatrixComp nonReferenceCurrent =
         (midpointVoltage - mVirtualNodes[0]->initialVoltage()) / halfImpedance;
     mVirtualNodes[3]->setInitialVoltage(
-        referenceVoltage - referenceCurrent * mResistance(0, 0) / 2.);
+        referenceVoltage - referenceCurrent * r1 / 2.);
     mVirtualNodes[4]->setInitialVoltage(
-        midpointVoltage - nonReferenceCurrent * mResistance(0, 0) / 2.);
+        midpointVoltage - nonReferenceCurrent * r1 / 2.);
   }
 
   **mIntfVoltage = initialVoltage(1) - initialVoltage(0);
