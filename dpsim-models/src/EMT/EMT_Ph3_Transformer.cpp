@@ -79,13 +79,21 @@ void EMT::Ph3::Transformer::resolveWindingRoles() {
   }
   mRatioFromReference = (mReferenceTerminal == 0) ? **mRatio : 1. / **mRatio;
   mOrientationSign = (mReferenceTerminal == 0) ? 1. : -1.;
+  if (mWinding.size() > 0 && mReferenceTerminal != 0) {
+    SPDLOG_LOGGER_ERROR(mSLog,
+                        "Transformer {}: the Yd vector group needs the star "
+                        "winding at terminal 0 as reference winding",
+                        this->name());
+    throw InvalidArgumentException();
+  }
 
-  if (Math::abs(std::arg(mRatioFromReference)) > 1e-9) {
+  if (mWinding.size() == 0 &&
+      Math::abs(std::arg(mRatioFromReference)) > 1e-9) {
     SPDLOG_LOGGER_ERROR(mSLog,
                         "Turns ratio {} has a phase shift of {} rad. "
                         "EMT::Ph3::Transformer models in-phase turns ratios "
                         "only; a phase-shifting winding connection is not "
-                        "implemented.",
+                        "implemented; use setYdVectorGroup().",
                         Logger::complexToString(mRatioFromReference),
                         std::arg(mRatioFromReference));
     throw InvalidArgumentException();
@@ -308,7 +316,23 @@ void EMT::Ph3::Transformer::mnaCompApplySystemMatrixStamp(
                            mVirtualNodes[1]->matrixNodeIndex(PhaseType::C),
                            mVirtualNodes[0]->matrixNodeIndex(PhaseType::C), 1.);
   }
-  if (terminalNotGrounded(nonReferenceTerminal())) {
+  if (terminalNotGrounded(nonReferenceTerminal()) && mWinding.size() > 0) {
+    // delta terminals: v0' = N v1, i1 = -N^T i0'
+    const PhaseType abc[3] = {PhaseType::A, PhaseType::B, PhaseType::C};
+    for (UInt p = 0; p < 3; ++p)
+      for (UInt q = 0; q < 3; ++q) {
+        if (mWinding(p, q) == 0.)
+          continue;
+        Math::setMatrixElement(systemMatrix,
+                               matrixNodeIndex(nonReferenceTerminal(), q),
+                               mVirtualNodes[1]->matrixNodeIndex(abc[p]),
+                               mWinding(p, q));
+        Math::setMatrixElement(systemMatrix,
+                               mVirtualNodes[1]->matrixNodeIndex(abc[p]),
+                               matrixNodeIndex(nonReferenceTerminal(), q),
+                               -mWinding(p, q));
+      }
+  } else if (terminalNotGrounded(nonReferenceTerminal())) {
     Math::setMatrixElement(systemMatrix,
                            matrixNodeIndex(nonReferenceTerminal(), 0),
                            mVirtualNodes[1]->matrixNodeIndex(PhaseType::A),

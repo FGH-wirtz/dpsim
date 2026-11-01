@@ -64,6 +64,13 @@ void DP::Ph3::Transformer::resolveWindingRoles() {
 
   mRatioFromReference = (mReferenceTerminal == 0) ? **mRatio : 1. / **mRatio;
   mOrientationSign = (mReferenceTerminal == 0) ? 1. : -1.;
+  if (mWinding.size() > 0 && mReferenceTerminal != 0) {
+    SPDLOG_LOGGER_ERROR(mSLog,
+                        "Transformer {}: the Yd vector group needs the star "
+                        "winding at terminal 0 as reference winding",
+                        this->name());
+    throw InvalidArgumentException();
+  }
 
   SPDLOG_LOGGER_INFO(
       mSLog,
@@ -226,7 +233,23 @@ void DP::Ph3::Transformer::mnaParentApplySystemMatrixStamp(
           Complex(1.0, 0));
     }
   }
-  if (terminalNotGrounded(nonReferenceTerminal())) {
+  if (terminalNotGrounded(nonReferenceTerminal()) && mWinding.size() > 0) {
+    // delta terminals: v0' = N v1, i1 = -N^T i0'
+    for (UInt p = 0; p < 3; ++p)
+      for (UInt q = 0; q < 3; ++q) {
+        if (mWinding(p, q) == 0.)
+          continue;
+        Math::setMatrixElement(
+            systemMatrix, matrixNodeIndex(nonReferenceTerminal(), q),
+            mVirtualNodes[1]->matrixNodeIndex(static_cast<PhaseType>(p)),
+            Complex(mWinding(p, q), 0));
+        Math::setMatrixElement(
+            systemMatrix,
+            mVirtualNodes[1]->matrixNodeIndex(static_cast<PhaseType>(p)),
+            matrixNodeIndex(nonReferenceTerminal(), q),
+            Complex(-mWinding(p, q), 0));
+      }
+  } else if (terminalNotGrounded(nonReferenceTerminal())) {
     for (UInt phase = 0; phase < 3; phase++) {
       Math::setMatrixElement(
           systemMatrix, matrixNodeIndex(nonReferenceTerminal(), phase),

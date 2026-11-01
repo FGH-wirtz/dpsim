@@ -98,6 +98,11 @@ The conjugate on the low voltage row is what makes the phase shift preserve powe
 it. The three-phase representation in `SP::Ph3` and `DP::Ph3` carries this, and `EMT::Ph3` cannot,
 because a phase shift is a rotation in the complex plane and the EMT state is real.
 
+A complex $T$ turns the negative sequence the same way as the positive one. A real vector group
+turns it the opposite way and blocks the zero sequence. `EMT::Ph3` and `DP::Ph3` take it as winding
+matrix $N$, `setYdVectorGroup(clock)` for Yd1, Yd5, Yd7 or Yd11: star on the high-voltage side as
+reference winding, $v_j = N v_k$ and $i_k = -N^T i_j$.
+
 ## The direction of the ratio
 
 The reference winding decides which side the impedance is referred to. Referring an impedance across
