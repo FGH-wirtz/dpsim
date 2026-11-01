@@ -73,6 +73,7 @@ set(CIRCUIT_SOURCES
 	Circuits/DP_EMT_RL_SourceStep.cpp
 	Circuits/EMT_DP_SP_Trafo.cpp
 	Circuits/EMT_DP_SP_WT4B_Trafo_Fault.cpp
+	Circuits/SP_DP_EMT_TOV_LoadRejection.cpp
 	Circuits/EMT_DP_SP_Slack_PiLine_PQLoad_FrequencyRamp_CosineFM.cpp
 
 	# Transformer no-load and short-circuit tests
