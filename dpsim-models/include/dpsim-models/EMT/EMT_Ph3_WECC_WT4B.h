@@ -153,6 +153,7 @@ protected:
   Signal::WindGen::VoltageRideThrough mVrt;                 // latched trip
   Signal::WindGen::HalfCycleRms mUHalf[3];
   Signal::WindGen::VdeFaultRideThrough mFrt;
+  Signal::WindGen::NegativeSequenceSupport mNegSeq;
 
   // initial (seed) per-unit current commands
   Real mId0Pu = 0;
@@ -190,6 +191,9 @@ public:
   const Attribute<Bool>::Ptr mTripped;
   /// voltage measured by the ride-through protection, p.u.
   const Attribute<Real>::Ptr mUProtPu;
+  /// negative-sequence voltage and additional reactive current (pu, phasors)
+  const Attribute<Complex>::Ptr mU2Pu;
+  const Attribute<Complex>::Ptr mI2Pu;
   /// Current reference injected by the controlled source (SI, abc)
   const Attribute<Matrix>::Ptr mIsref;
   const Attribute<Matrix>::Ptr mIs;
@@ -221,6 +225,12 @@ public:
   /// voltage peak > 1.25 p.u. for 0.2 ms, 2 = half-cycle RMS of the largest
   /// line-line voltage against the envelope.
   void setProtectionMeasurement(int measurement) { mVrt.setMeasurement(measurement); }
+  /// VDE-AR-N 4120 negative-sequence reactive current Delta i2 = k Delta u2
+  /// (k = 0: off); current lag tau, measurement low pass tauMeas
+  void setNegativeSequenceSupport(Real k, Real tau = 0.005,
+                                  Real tauMeas = 0.005) {
+    mNegSeq.setParameters(k, tau, tauMeas);
+  }
   void setControllerParameters(Real Kp_pll, Real Ki_pll, Real Omega_cutoff);
   void setTransformerParameters(Real nomVoltageEnd1, Real nomVoltageEnd2,
                                 Real ratedPower, Real ratioAbs, Real ratioPhase,

@@ -171,6 +171,7 @@ protected:
   Complex mPeakEnv[3], mPeakEnvPrev[3];
   Complex peakEnvelope(int k, Real lag) const;
   Signal::WindGen::VdeFaultRideThrough mFrt;
+  Signal::WindGen::NegativeSequenceSupport mNegSeq;
 
   // initial (seed) per-unit current commands
   Real mId0Pu = 0;
@@ -208,6 +209,9 @@ public:
   const Attribute<Bool>::Ptr mTripped;
   /// voltage measured by the ride-through protection, p.u.
   const Attribute<Real>::Ptr mUProtPu;
+  /// negative-sequence voltage and additional reactive current (pu, phasors)
+  const Attribute<Complex>::Ptr mU2Pu;
+  const Attribute<Complex>::Ptr mI2Pu;
   /// Complex current reference injected by the controlled source
   const Attribute<Complex>::Ptr mIsref;
   const Attribute<MatrixComp>::Ptr mIs;
@@ -241,6 +245,12 @@ public:
   /// voltage peak > 1.25 p.u. for 0.2 ms, 2 = half-cycle RMS of the largest
   /// line-line voltage against the envelope.
   void setProtectionMeasurement(int measurement) { mVrt.setMeasurement(measurement); }
+  /// VDE-AR-N 4120 negative-sequence reactive current Delta i2 = k Delta u2
+  /// (k = 0: off); current lag tau, measurement low pass tauMeas
+  void setNegativeSequenceSupport(Real k, Real tau = 0.005,
+                                  Real tauMeas = 0.005) {
+    mNegSeq.setParameters(k, tau, tauMeas);
+  }
   /// Phase voltage corrections and compensation_active state of a compensated
   /// DP1 breaker at the unit node (DP::Ph1::Switch::addCompensatedNode).
   /// spaceVector: control gets V1 + V2, else V1 only; handedOver: the

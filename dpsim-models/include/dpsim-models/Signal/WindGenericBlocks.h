@@ -355,6 +355,112 @@ private:
   }
 };
 
+/// VDE-AR-N 4120 negative-sequence reactive current Delta i2 = k Delta u2,
+/// inductive (injected j k Delta u2, generator convention). u2 from the
+/// envelope E and its value a quarter period earlier,
+/// E(t) - E(t - T/4) = 2 conj(U2) e^-2jwt, low-pass filtered. Released by the
+/// positive-sequence fault state or a line-line voltage outside 0.9..1.1 pu.
+struct NegativeSequenceSupport {
+  Real mK = 0.0;
+  Real mTau = 0.005;
+  Real mTauMeas = 0.005;
+  static constexpr Real cTauRef = 10.0;
+  static constexpr Real cArm = 0.5;
+  static constexpr Real cTauArm = 0.1;
+  static constexpr Real cBandLo = 0.9, cBandHi = 1.1, cHyst = 0.005;
+
+  std::deque<Complex> mHistory;
+  Complex mU1{0., 0.}, mU2{0., 0.}, mRef{0., 0.}, mI2{0., 0.}, mI2End{0., 0.};
+  Real mElapsed = 0.;
+  Real mRampT = 0.;
+  Real mKd = 1.;
+  bool mValid = false;
+  bool mOutside = false;
+  bool mReleased = false;
+
+  void setParameters(Real k, Real tau, Real tauMeas) {
+    mK = k;
+    mTau = tau;
+    mTauMeas = tauMeas;
+  }
+  /// negative-sequence current in pu
+  Complex step(Complex envelope, Real omega, Real time, Real dt, Real uBase,
+               bool fault, Real ramp) {
+    mElapsed += dt;
+    const auto delay = static_cast<std::size_t>(
+        std::max(1.0, std::round(0.5 * M_PI / omega / dt)));
+    mHistory.push_back(envelope);
+    while (mHistory.size() > delay + 1)
+      mHistory.pop_front();
+    if (mHistory.size() == delay + 1) {
+      const Real a = 1. - std::exp(-dt / mTauMeas);
+      const Complex u1 = (envelope + mHistory.front()) / 2. / uBase;
+      const Complex u2 = std::conj((envelope - mHistory.front()) / 2. *
+                                   std::polar(1.0, 2. * omega * time)) /
+                         uBase;
+      mU1 = mValid ? mU1 + a * (u1 - mU1) : u1;
+      mU2 += a * (u2 - mU2);
+      mValid = true;
+    }
+    // line-line voltages |u1 + u2 e^-j60 a^2p|
+    if (mValid && mElapsed >= cArm) {
+      Real lo = 1e9, hi = 0.;
+      for (int p = 0; p < 3; ++p) {
+        const Real u = std::abs(
+            mU1 + mU2 * std::polar(1.0, -M_PI / 3. + 4. * M_PI * p / 3.));
+        lo = std::min(lo, u);
+        hi = std::max(hi, u);
+      }
+      mOutside = mOutside ? !(lo >= cBandLo + cHyst && hi <= cBandHi - cHyst)
+                          : (lo < cBandLo || hi > cBandHi);
+    }
+    const bool release = fault || mOutside;
+    if (!release)
+      mRef += (1. - std::exp(-dt / (mElapsed < cArm ? cTauArm : cTauRef))) *
+              (mU2 - mRef);
+    Complex target(0., 0.);
+    if (release && mK > 0.) {
+      target = Complex(0., mK) * (mU2 - mRef);
+      mRampT = 0.;
+    } else if (mReleased) {
+      mI2End = mI2;
+    }
+    if (!release && mRampT < ramp) {
+      mRampT += dt;
+      target = mI2End * std::max(0., 1. - mRampT / ramp);
+    }
+    mReleased = release;
+    mI2 += (1. - std::exp(-dt / mTau)) * (target - mI2);
+    return mI2;
+  }
+  bool released() const { return mReleased; }
+  /// active-current factor: falls at once, rises with the ramp
+  Real activeFactor(Real kd, Real dt, Real ramp) {
+    mKd = std::min(kd, mKd + (ramp > 0. ? dt / ramp : 1.));
+    return mKd;
+  }
+  /// Factors (active, reactive) on id and on iq, i2. activeFirst (fault):
+  /// |i1| + |i2| <= imax, active current lowered first, then both sequences
+  /// alike (4120 10.2.3.3); otherwise all alike on the largest phase current.
+  /// Phase p carries i1 + i2 a^2p.
+  static std::pair<Real, Real> phaseLimit(Complex id, Complex iq, Complex i2,
+                                          Real imax, bool activeFirst) {
+    if (activeFirst) {
+      const Real a = std::abs(iq), b = std::abs(i2);
+      if (a + b >= imax)
+        return {0., imax / (a + b)};
+      const Real idMax = std::sqrt((imax - b) * (imax - b) - a * a);
+      return {std::abs(id) > idMax ? idMax / std::abs(id) : 1., 1.};
+    }
+    Real peak = 0.;
+    for (int p = 0; p < 3; ++p)
+      peak = std::max(peak, std::abs(id + iq +
+                                     i2 * std::polar(1.0, 4. * M_PI * p / 3.)));
+    return peak > imax ? std::pair<Real, Real>{imax / peak, imax / peak}
+                       : std::pair<Real, Real>{1., 1.};
+  }
+};
+
 // half-cycle RMS value: sliding mean of the squared voltage (p.u.^2) over
 // half a fundamental period, seeded with mSeed
 struct HalfCycleRms {

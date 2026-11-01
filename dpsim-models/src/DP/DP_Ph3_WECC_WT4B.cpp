@@ -39,6 +39,8 @@ DP::Ph3::WECC_WT4B::WECC_WT4B(String uid, String name, Logger::Level logLevel,
       mFaultState(mAttributes->create<Bool>("FaultState", false)),
       mTripped(mAttributes->create<Bool>("tripped", false)),
       mUProtPu(mAttributes->create<Real>("UProtPu", 1.0)),
+      mU2Pu(mAttributes->create<Complex>("U2Pu", Complex(0., 0.))),
+      mI2Pu(mAttributes->create<Complex>("I2Pu", Complex(0., 0.))),
       mIsref(mAttributes->create<MatrixComp>("Isref", MatrixComp::Zero(3, 1))),
       mIs(mAttributes->createDynamic<MatrixComp>("Is")),
       mPllOutput(mAttributes->createDynamic<Matrix>("pll_output")) {
@@ -378,6 +380,9 @@ void DP::Ph3::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
   // FRT detection on the tRv-filtered voltage (REEC Vt_filt); the filter
   // also prevents FRT chatter through the one-step V-I loop
   bool frt = mFrt.step(UFilt, dt);
+  // envelope in dq units: the space vector VnodeA scaled as in toDQ
+  Complex i2 = mNegSeq.step(std::sqrt(3. / 2.) * VnodeA, **mOmegaN, time, dt,
+                            mUdqNom, frt || mP_.DroopMode == 2, mP_.FrtRamp);
   **mFaultState = frt;
 
   // ---- active power channel ----
@@ -449,11 +454,22 @@ void DP::Ph3::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
   **mIdRefPu = idRef;
   **mIqRefPu = iqRef;
 
-  // ---- current injection (InjectorIDQ), balanced positive sequence ----
+  // ---- current injection (InjectorIDQ); negative sequence: phase b leads ----
+  const auto lim = Signal::WindGen::NegativeSequenceSupport::phaseLimit(
+      idRef * std::polar(1.0, mThetaT), Complex(0., iqRef) * std::polar(1.0, mThetaT),
+      i2, mP_.IMaxPu, mNegSeq.released());
+  idRef *= mNegSeq.activeFactor(lim.first, dt, mP_.FrtRamp);
+  iqRef *= lim.second;
+  i2 *= lim.second;
+  **mIdRefPu = idRef;
+  **mIqRefPu = iqRef;
+  **mU2Pu = mNegSeq.mU2;
+  **mI2Pu = i2;
   Complex IgenA = fromDQ(idRef * mIBaseDq, iqRef * mIBaseDq);
-  (**mIsref)(0, 0) = IgenA;
-  (**mIsref)(1, 0) = IgenA * SHIFT_TO_PHASE_B;
-  (**mIsref)(2, 0) = IgenA * SHIFT_TO_PHASE_C;
+  const Complex Igen2 = std::sqrt(2. / 3.) * i2 * mIBaseDq;
+  (**mIsref)(0, 0) = IgenA + Igen2;
+  (**mIsref)(1, 0) = IgenA * SHIFT_TO_PHASE_B + Igen2 * SHIFT_TO_PHASE_C;
+  (**mIsref)(2, 0) = IgenA * SHIFT_TO_PHASE_C + Igen2 * SHIFT_TO_PHASE_B;
 
   // VDE HVRT/non-HVRT protection: mVrt.gate() scales the injection (0 when
   // disconnected, ramps to 1 on reconnection); a scheduled disconnect gives 0.
@@ -475,6 +491,7 @@ void DP::Ph3::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
     **mIsref = **mIsref * g;
     **mP = **mP * g; **mQ = **mQ * g;
     **mIdRefPu = **mIdRefPu * g; **mIqRefPu = **mIqRefPu * g;
+    **mI2Pu = **mI2Pu * g;
   }
 
   mThetaN += dt * **mOmegaN;

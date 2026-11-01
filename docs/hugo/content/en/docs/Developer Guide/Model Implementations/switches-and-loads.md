@@ -168,6 +168,25 @@ frequency-parallel solves; the zero-crossing rewind of the quadrature correction
 injections. The conditions are one per phase, so a phase-to-phase fault without ground or an open
 conductor with coupled phases needs per-port 3x3 conditions, not yet there.
 
+### Negative-sequence support of converters
+
+The WECC WT4B (`setNegativeSequenceSupport(k, tau, tauMeas)`, DP::Ph1, DP::Ph3 and EMT::Ph3 alike)
+adds the VDE-AR-N 4120 reactive current `Delta i2 = k Delta u2`, inductive with respect to `u2`
+(injected `j k Delta u2`, generator convention). `u2` comes from the envelope of the terminal space
+vector and its value a quarter period earlier, low-pass filtered with `tauMeas` (5 ms); the current
+follows with `tau` (5 ms). `Delta u2` is taken against a slow mean of `u2`. The support is released
+by the positive-sequence fault detection or a line-line voltage outside 0.9..1.1 pu and ramped out
+over `FrtRamp`. During the release `|i1| + |i2| <= IMax`: the active current is lowered first, then
+both sequences alike; the active current returns with `FrtRamp`. DP::Ph1 injects
+`conj(I2) e^(-2 j omega (t + dt))`, since the command of a step is stamped in the next one.
+
+The measurement filter is needed: the quarter-period difference passes high frequencies, and with a
+current-source converter the loop `L = -j k Z2 H` becomes unstable at network resonances
+(Testfall 1: 6 kHz without filter from k = 0.5, with 5 ms only above k = 11). A step of the positive
+sequence appears in `u2` for a quarter period (three-phase fault, k = 6: `|i2|` up to 0.21 pu for
+10 ms). Testfall 1, k = 5: `u2` at the converter drops by 43-45 %, rise time 14-15 ms, DP::Ph1 with
+space-vector compensation, DP::Ph3 and EMT within 0.3 % of EMT at 1 us.
+
 ### varResSwitch
 
 `varResSwitch` also implements `MNAVariableCompInterface`, which is what allows it to change

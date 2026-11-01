@@ -39,6 +39,8 @@ EMT::Ph3::WECC_WT4B::WECC_WT4B(String uid, String name, Logger::Level logLevel,
       mFaultState(mAttributes->create<Bool>("FaultState", false)),
       mTripped(mAttributes->create<Bool>("tripped", false)),
       mUProtPu(mAttributes->create<Real>("UProtPu", 1.0)),
+      mU2Pu(mAttributes->create<Complex>("U2Pu", Complex(0., 0.))),
+      mI2Pu(mAttributes->create<Complex>("I2Pu", Complex(0., 0.))),
       mIsref(mAttributes->create<Matrix>("Isref", Matrix::Zero(3, 1))),
       mIs(mAttributes->createDynamic<Matrix>("Is")),
       mPllOutput(mAttributes->createDynamic<Matrix>("pll_output")) {
@@ -383,6 +385,11 @@ void EMT::Ph3::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
   // FRT detection on the tRv-filtered voltage (REEC Vt_filt); the filter
   // also prevents FRT chatter through the one-step V-I loop
   bool frt = mFrt.step(UFilt, dt);
+  // envelope in dq units: the park transform at the nominal rotation w t
+  Matrix venv = parkTransform(**mOmegaN * time, Vabc);
+  Complex i2 = mNegSeq.step(Complex(venv(0, 0), venv(1, 0)), **mOmegaN, time,
+                            dt, mUdqNom, frt || mP_.DroopMode == 2,
+                            mP_.FrtRamp);
   **mFaultState = frt;
 
   // ---- active power channel ----
@@ -461,11 +468,29 @@ void EMT::Ph3::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
   **mIqRefPu = iqRef;
 
   // ---- direct current injection (InjectorIDQ) ----
+  // negative sequence: phase k carries Re{I2 a^k e^jwt}; above IMax the
+  // active current goes first during the release
+  const Complex rot = std::polar(1.0, theta - **mOmegaN * time);
+  const auto lim = Signal::WindGen::NegativeSequenceSupport::phaseLimit(
+      idRef * rot, Complex(0., iqRef) * rot, i2, mP_.IMaxPu,
+      mNegSeq.released());
+  idRef *= mNegSeq.activeFactor(lim.first, dt, mP_.FrtRamp);
+  iqRef *= lim.second;
+  i2 *= lim.second;
+  **mIdRefPu = idRef;
+  **mIqRefPu = iqRef;
+  **mU2Pu = mNegSeq.mU2;
+  **mI2Pu = i2;
   Matrix idqRef = Matrix::Zero(2, 1);
   idqRef(0, 0) = idRef * mIBaseDq;
   idqRef(1, 0) = iqRef * mIBaseDq;
   // generator dq command -> receptor terminal current (leading minus)
   **mIsref = -inverseParkTransform(theta, idqRef);
+  for (int k = 0; k < 3; ++k)
+    (**mIsref)(k, 0) -=
+        std::sqrt(2. / 3.) *
+        std::real(i2 * mIBaseDq *
+                  std::polar(1.0, **mOmegaN * time + 2. * M_PI * k / 3.));
 
   // VDE HVRT/non-HVRT protection: mVrt.gate() scales the injection (0 when
   // disconnected, ramps to 1 on reconnection); a scheduled disconnect gives 0.
@@ -487,6 +512,7 @@ void EMT::Ph3::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
     **mIsref = **mIsref * g;
     **mP = **mP * g; **mQ = **mQ * g;
     **mIdRefPu = **mIdRefPu * g; **mIqRefPu = **mIqRefPu * g;
+    **mI2Pu = **mI2Pu * g;
   }
 
   mThetaN += dt * **mOmegaN;

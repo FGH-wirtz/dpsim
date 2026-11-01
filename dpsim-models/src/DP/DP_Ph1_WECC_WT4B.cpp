@@ -41,6 +41,8 @@ DP::Ph1::WECC_WT4B::WECC_WT4B(String uid, String name, Logger::Level logLevel,
       mFaultState(mAttributes->create<Bool>("FaultState", false)),
       mTripped(mAttributes->create<Bool>("tripped", false)),
       mUProtPu(mAttributes->create<Real>("UProtPu", 1.0)),
+      mU2Pu(mAttributes->create<Complex>("U2Pu", Complex(0., 0.))),
+      mI2Pu(mAttributes->create<Complex>("I2Pu", Complex(0., 0.))),
       mIsref(mAttributes->create<Complex>("Isref", Complex(0, 0))),
       mIs(mAttributes->createDynamic<MatrixComp>("Is")),
       mPllOutput(mAttributes->createDynamic<Matrix>("pll_output")) {
@@ -353,6 +355,7 @@ void DP::Ph1::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
   Complex Vnode = mWithConnectionTransformer
                       ? mVirtualNodes[0]->mVoltage->get()(0, 0)
                       : (**mIntfVoltage)(0, 0);
+  Complex envelope = Vnode;
   if (!mCompCorrection.isNull()) {
     mVNodePrev = mVNodeValid ? mVNode : Vnode;
     mVNode = Vnode;
@@ -374,6 +377,7 @@ void DP::Ph1::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
               std::polar(1.0, 4. * PI * k / 3. - 2. * **mOmegaN * time);
       }
       sv = v1 + v2;
+      envelope = sv;
     }
     const auto delay = static_cast<std::size_t>(
         std::max(1.0, std::round(0.5 * PI / **mOmegaN / dt)));
@@ -426,6 +430,8 @@ void DP::Ph1::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
   // FRT detection on the tRv-filtered voltage (REEC Vt_filt); the filter
   // also prevents FRT chatter through the one-step V-I loop
   bool frt = mFrt.step(UFilt, dt);
+  Complex i2 = mNegSeq.step(envelope, **mOmegaN, time, dt, mUdqNom,
+                            frt || mP_.DroopMode == 2, mP_.FrtRamp);
   **mFaultState = frt;
 
   // ---- active power channel ----
@@ -504,8 +510,21 @@ void DP::Ph1::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
   **mIqRefPu = iqRef;
 
   // ---- direct current injection (InjectorIDQ) ----
-  // generator dq command -> receptor terminal current (leading minus)
-  **mIsref = -fromDQ(idRef * mIBaseDq, iqRef * mIBaseDq);
+  // generator dq command -> receptor terminal current (leading minus);
+  // negative sequence conj(I2) e^-2jwt, stamped in the next step
+  const auto lim = Signal::WindGen::NegativeSequenceSupport::phaseLimit(
+      fromDQ(idRef, 0.), fromDQ(0., iqRef), i2, mP_.IMaxPu,
+      mNegSeq.released());
+  idRef *= mNegSeq.activeFactor(lim.first, dt, mP_.FrtRamp);
+  iqRef *= lim.second;
+  i2 *= lim.second;
+  **mIdRefPu = idRef;
+  **mIqRefPu = iqRef;
+  **mU2Pu = mNegSeq.mU2;
+  **mI2Pu = i2;
+  **mIsref = -(fromDQ(idRef * mIBaseDq, iqRef * mIBaseDq) +
+               std::conj(i2 * mIBaseDq) *
+                   std::polar(1.0, -2. * **mOmegaN * (time + dt)));
 
   // VDE HVRT/non-HVRT protection: mVrt.gate() scales the injection (0 when
   // disconnected, ramps to 1 on reconnection); a scheduled disconnect gives 0
@@ -550,6 +569,7 @@ void DP::Ph1::WECC_WT4B::controlStep(Real time, Int timeStepCount) {
     **mIsref = **mIsref * g;
     **mP = **mP * g; **mQ = **mQ * g;
     **mIdRefPu = **mIdRefPu * g; **mIqRefPu = **mIqRefPu * g;
+    **mI2Pu = **mI2Pu * g;
   }
 
   mThetaN += dt * **mOmegaN;
