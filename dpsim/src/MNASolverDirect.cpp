@@ -6,6 +6,12 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/.
  *********************************************************************************/
 
+#include <cmath>
+#include <functional>
+#include <stdexcept>
+#include <type_traits>
+
+#include <dpsim-models/CompositePowerComp.h>
 #include <dpsim/MNASolverDirect.h>
 #include <dpsim/SequentialScheduler.h>
 
@@ -118,6 +124,9 @@ void MnaSolverDirect<VarType>::solveWithSystemMatrixRecomputation(
   // pre-step tasks)
   for (auto stamp : mRightVectorStamps)
     mRightSideVector += *stamp;
+
+  if (!mIsInInitialization)
+    applyStateHandover();
 
   // Get switch and variable comp status and update system matrix and lu factorization accordingly
   mVariableComponentChanged = hasVariableComponentChanged();
@@ -342,24 +351,6 @@ Bool MnaSolverDirect<VarType>::applyQuadratureCorrection(
   if (corrected == 0 && !interpolated)
     return false;
 
-  // A composite's right vector aggregates its sub-components, so every stamp
-  // is re-run
-  auto assembleRightSide = [this]() {
-    for (auto comp : mMNAComponents)
-      if (comp->getRightVector()->get().size() != 0)
-        comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
-    for (auto comp : mMNAIntfVariableComps)
-      if (comp->getRightVector()->get().size() != 0)
-        comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
-    for (auto comp : mMNAIntfSwitches)
-      if (comp->getRightVector()->get().size() != 0)
-        comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
-
-    mRightSideVector.setZero();
-    for (auto stamp : mRightVectorStamps)
-      mRightSideVector += *stamp;
-  };
-
   assembleRightSide();
 
   // One step of the post-event network from the zero, then back to the step
@@ -370,6 +361,87 @@ Bool MnaSolverDirect<VarType>::applyQuadratureCorrection(
   }
 
   **mLeftSideVector = linearSolver.solve(mRightSideVector);
+  return true;
+}
+
+template <typename VarType>
+void MnaSolverDirect<VarType>::assembleRightSide() {
+  // composites sum the source vectors of their sub-components: re-stamp all
+  for (auto comp : mMNAComponents)
+    if (comp->getRightVector()->get().size() != 0)
+      comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
+  for (auto comp : mMNAIntfVariableComps)
+    if (comp->getRightVector()->get().size() != 0)
+      comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
+  for (auto comp : mMNAIntfSwitches)
+    if (comp->getRightVector()->get().size() != 0)
+      comp->mnaApplyRightSideVectorStamp(**comp->getRightVector());
+
+  mRightSideVector.setZero();
+  for (auto stamp : mRightVectorStamps)
+    mRightSideVector += *stamp;
+}
+
+template <typename VarType>
+Bool MnaSolverDirect<VarType>::applyStateHandover() {
+  std::vector<CPS::MNASwitchInterface::StateHandover> handover;
+  for (auto sw : mSwitches) {
+    auto taken = sw->takeStateHandover();
+    handover.insert(handover.end(), taken.begin(), taken.end());
+  }
+  if (handover.empty())
+    return false;
+
+  if constexpr (!std::is_same<VarType, Complex>::value) {
+    throw std::runtime_error(
+        "MnaSolverDirect: a state handover needs the DP domain.");
+  } else {
+    // storage elements by name, sub-components included; duplicate names are
+    // ignored
+    std::unordered_map<String, CPS::MNAInterface::Ptr> states;
+    std::function<void(const CPS::MNAInterface::Ptr &)> collect =
+        [&](const CPS::MNAInterface::Ptr &comp) {
+          auto state = std::dynamic_pointer_cast<
+              CPS::MNAQuadratureCorrectionInterface<VarType>>(comp);
+          auto object = std::dynamic_pointer_cast<CPS::IdentifiedObject>(comp);
+          if (state && object) {
+            auto inserted = states.emplace(object->name(), comp);
+            if (!inserted.second)
+              inserted.first->second = nullptr;
+          }
+          if (auto composite =
+                  std::dynamic_pointer_cast<CPS::CompositePowerComp<VarType>>(
+                      comp))
+            for (auto sub : composite->mnaSubComponents())
+              collect(sub);
+        };
+    for (auto comp : mMNAComponents)
+      collect(comp);
+    for (auto comp : mMNAIntfVariableComps)
+      collect(comp);
+
+    for (auto &h : handover) {
+      const auto &e = h.element;
+      auto it = states.find(e.name);
+      if (it == states.end() || !it->second)
+        throw std::runtime_error("MnaSolverDirect: no unique storage element " +
+                                 e.name + " for a state handover.");
+      auto state = std::dynamic_pointer_cast<
+          CPS::MNAQuadratureCorrectionInterface<VarType>>(it->second);
+      auto comp = std::dynamic_pointer_cast<CPS::SimPowerComp<VarType>>(
+          it->second);
+      if (!comp || comp->terminalNumber() != 2 ||
+          comp->node(0)->name() != e.node0 ||
+          comp->node(1)->name() != e.node1 ||
+          std::abs(state->mnaCorrectionElementValue(0) - e.value) >
+              1e-9 * std::abs(e.value))
+        throw std::runtime_error("MnaSolverDirect: storage element " + e.name +
+                                 " differs from the one handed over.");
+      state->mnaCorrectionAddState(0, h.voltage, h.current);
+      state->mnaCorrectionRebuildRightVector();
+    }
+  }
+  assembleRightSide();
   return true;
 }
 
@@ -385,8 +457,10 @@ void MnaSolverDirect<VarType>::solve(Real time, Int timeStepCount) {
   for (auto stamp : mRightVectorStamps)
     mRightSideVector += *stamp;
 
-  if (!mIsInInitialization)
+  if (!mIsInInitialization) {
+    applyStateHandover();
     MnaSolver<VarType>::updateSwitchStatus();
+  }
 
   if (mSwitchedMatrices.size() > 0) {
     std::chrono::steady_clock::time_point start;

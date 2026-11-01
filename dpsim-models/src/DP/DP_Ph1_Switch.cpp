@@ -30,7 +30,14 @@ DP::Ph1::Switch::Switch(String uid, String name, Logger::Level logLevel)
           mAttributes->create<Real>("exponential_transition_start_time")),
       mExponentialTransitionEndTime(
           mAttributes->create<Real>("exponential_transition_end_time")),
-      mEffectiveResistance(mAttributes->create<Real>("effective_resistance")) {
+      mEffectiveResistance(mAttributes->create<Real>("effective_resistance")),
+      mCompensationActive(
+          mAttributes->create<Bool>("compensation_active", false)),
+      mCompensationCurrent(mAttributes->create<MatrixComp>(
+          "compensation_current", MatrixComp::Zero(3, 1))),
+      mTheveninIndex(mAttributes->create<Int>("thevenin_index", 0)),
+      mCompHandedOver(
+          mAttributes->create<Bool>("compensation_handed_over", false)) {
   setTerminalNumber(2);
   **mIntfVoltage = MatrixComp::Zero(1, 1);
   **mIntfCurrent = MatrixComp::Zero(1, 1);
@@ -91,6 +98,47 @@ void DP::Ph1::Switch::setExponentialSwitchingTime(Real switchingTime) {
   mExponentialSwitchingTime = switchingTime;
 }
 
+void DP::Ph1::Switch::setTheveninEquivalents(
+    const TheveninEquivalent &positive, const TheveninEquivalent &zero,
+    const std::vector<ObservedNode> &nodes) {
+  const Matrix::Index rows = 2 + 2 * static_cast<Matrix::Index>(nodes.size());
+  for (auto *eq : {&positive, &zero}) {
+    if (eq->C.rows() != rows || eq->D.rows() != rows || eq->B.cols() != 2 ||
+        eq->D.cols() != 2) {
+      throw std::invalid_argument(
+          "DP::Ph1::Switch Thevenin equivalent does not match the observed "
+          "nodes.");
+    }
+  }
+  mThevenin1 = {positive};
+  mThevenin0 = {zero};
+  mCompNodes = nodes;
+  mCompNodeCorrections.clear();
+  for (auto &node : nodes)
+    mCompNodeCorrections.push_back(mAttributes->create<MatrixComp>(
+        "compensation_v_" + node.name, MatrixComp::Zero(3, 1)));
+}
+
+Int DP::Ph1::Switch::addTheveninEquivalents(const TheveninEquivalent &positive,
+                                            const TheveninEquivalent &zero) {
+  if (mThevenin1.empty() || positive.A.rows() != mThevenin1[0].A.rows() ||
+      zero.A.rows() != mThevenin0[0].A.rows() ||
+      positive.C.rows() != mThevenin1[0].C.rows() ||
+      zero.C.rows() != mThevenin0[0].C.rows()) {
+    throw std::invalid_argument(
+        "DP::Ph1::Switch further Thevenin equivalents must match the first "
+        "set.");
+  }
+  if (positive.stateNames != mThevenin1[0].stateNames) {
+    throw std::invalid_argument(
+        "DP::Ph1::Switch further Thevenin equivalents must have the states of "
+        "the first set.");
+  }
+  mThevenin1.push_back(positive);
+  mThevenin0.push_back(zero);
+  return static_cast<Int>(mThevenin1.size()) - 1;
+}
+
 void DP::Ph1::Switch::openSwitch() {
   Base::Ph1::Switch::openSwitch();
 
@@ -114,6 +162,19 @@ void DP::Ph1::Switch::openSwitch() {
     resetZeroCrossingTime();
     resetExponentialTransition();
     synchronizeEffectiveResistance(false);
+    return;
+  }
+
+  // The network pole stays closed, the compensation opens the poles
+  if (mSwitchingMode == SwitchingMode::Compensated) {
+    if (mThevenin1.empty()) {
+      throw std::invalid_argument(
+          "DP::Ph1::Switch compensated mode requires Thevenin equivalents.");
+    }
+    **mCompensationActive = true;
+    **mOpeningRequested = true;
+    mCompArmed = false;
+    SPDLOG_LOGGER_INFO(mSLog, "DP compensated opening command received.");
     return;
   }
 
@@ -154,6 +215,15 @@ void DP::Ph1::Switch::closeSwitch() {
   **mOpeningRequested = false;
   resetZeroCrossingTime();
   mResetZeroCrossingHistory = false;
+
+  // All poles close together; the compensation then holds zero voltage
+  if (mSwitchingMode == SwitchingMode::Compensated) {
+    mCompOpen.fill(false);
+    **mCompHandedOver = false;
+    setPoleClosed(true);
+    SPDLOG_LOGGER_INFO(mSLog, "DP compensated closing command: poles closed.");
+    return;
+  }
 
   if (mSwitchingMode == SwitchingMode::CurrentZero) {
     setPoleClosed(true);
@@ -224,9 +294,11 @@ void DP::Ph1::Switch::initializeFromNodesAndTerminals(Real frequency) {
                      Logger::phasorToString(initialSingleVoltage(1)),
                      mSwitchingMode == SwitchingMode::Ideal
                          ? "Ideal"
-                         : (mSwitchingMode == SwitchingMode::CurrentZero
-                                ? "CurrentZero"
-                                : "ExponentialZCSEmulation"),
+                     : mSwitchingMode == SwitchingMode::CurrentZero
+                         ? "CurrentZero"
+                     : mSwitchingMode == SwitchingMode::Compensated
+                         ? "Compensated"
+                         : "ExponentialZCSEmulation",
                      **mIsClosed ? "closed" : "open");
 }
 
@@ -327,6 +399,13 @@ DP::Ph1::Switch::takeSwitchedPoles() {
   return {pole};
 }
 
+std::vector<MNASwitchInterface::StateHandover>
+DP::Ph1::Switch::takeStateHandover() {
+  std::vector<StateHandover> taken;
+  taken.swap(mCompHandoverPending);
+  return taken;
+}
+
 void DP::Ph1::Switch::mnaCompUpdateVoltage(const Matrix &leftVector) {
   // Voltage across component is defined as V1 - V0
   (**mIntfVoltage)(0, 0) = 0;
@@ -366,6 +445,11 @@ void DP::Ph1::Switch::mnaCompAddPostStepDependencies(
   modifiedAttributes.push_back(mExponentialTransitionStartTime);
   modifiedAttributes.push_back(mExponentialTransitionEndTime);
   modifiedAttributes.push_back(mEffectiveResistance);
+
+  modifiedAttributes.push_back(mCompensationCurrent);
+  modifiedAttributes.push_back(mCompHandedOver);
+  for (auto &correction : mCompNodeCorrections)
+    modifiedAttributes.push_back(correction);
 }
 
 void DP::Ph1::Switch::mnaCompPostStep(Real time, Int timeStepCount,
@@ -379,6 +463,17 @@ void DP::Ph1::Switch::mnaCompPostStep(Real time, Int timeStepCount,
     updateZeroCrossingState(time);
   } else if (mSwitchingMode == SwitchingMode::ExponentialZCSEmulation) {
     updateExponentialTransition(time);
+  } else if (mSwitchingMode == SwitchingMode::Compensated) {
+    if (**mCompensationActive) {
+      updateCompensation(time);
+    } else {
+      std::array<Real, 3> inst;
+      for (int p = 0; p < 3; ++p)
+        inst[p] = -std::real((**mIntfCurrent)(0, 0) *
+                             std::polar<Real>(1.0, mShiftOmega * time -
+                                                       2. * PI * p / 3.));
+      updatePoleCurrents(inst);
+    }
   }
 }
 
@@ -507,7 +602,8 @@ Complex DP::Ph1::Switch::currentConductance() const {
                          : Complex(1. / **mOpenResistance, 0);
   }
 
-  if (mSwitchingMode == SwitchingMode::CurrentZero) {
+  if (mSwitchingMode == SwitchingMode::CurrentZero ||
+      mSwitchingMode == SwitchingMode::Compensated) {
     return (**mPoleClosed) ? Complex(1. / **mClosedResistance, 0)
                            : Complex(1. / **mOpenResistance, 0);
   }
@@ -547,6 +643,178 @@ Real DP::Ph1::Switch::interpolateZeroCrossingTime(Real previousCurrent,
   const Real fraction = std::abs(previousCurrent) / denominator;
 
   return previousTime + fraction * (currentTime - previousTime);
+}
+
+void DP::Ph1::Switch::updateCompensation(Real time) {
+  // phase envelopes of the closed-run current from terminal 1 to 0,
+  // phase k shifted by -2 pi k / 3
+  const Complex ib = -(**mIntfCurrent)(0, 0);
+  Phases ic;
+  for (int p = 0; p < 3; ++p)
+    ic[p] = ib * std::polar<Real>(1.0, -2. * PI * p / 3.);
+  const Int set = **mTheveninIndex;
+  if (set < 0 || set >= static_cast<Int>(mThevenin1.size())) {
+    throw std::out_of_range("DP::Ph1::Switch thevenin_index out of range.");
+  }
+  const TheveninEquivalent &th1 = mThevenin1[set];
+  const TheveninEquivalent &th0 = mThevenin0[set];
+  // all poles open through this step: hand over at its end
+  const Bool handover = mCompHandover && **mPoleClosed && mCompOpen[0] &&
+                        mCompOpen[1] && mCompOpen[2];
+  const Bool first = !mCompStarted;
+  if (first) {
+    for (auto &x : mCompX1)
+      x = Matrix::Zero(th1.A.rows(), 1);
+    mCompX0 = Matrix::Zero(th0.A.rows(), 1);
+    mCompStarted = true;
+  }
+
+  // outputs of the earlier states
+  std::array<Matrix, 3> y1;
+  for (int p = 0; p < 3; ++p)
+    y1[p] = th1.C * mCompX1[p];
+  const Matrix y0 = th0.C * mCompX0;
+
+  // closed poles: v_p = y_p + G1 (D_p - m) + G0 m = 0 with m = mean(D);
+  // open poles: no current
+  const Matrix g1 = th1.D.topRows(2);
+  const Matrix g0 = th0.D.topRows(2);
+  Matrix m = Matrix::Zero(6, 6);
+  Matrix r = Matrix::Zero(6, 1);
+  for (int p = 0; p < 3; ++p) {
+    if (mCompOpen[p]) {
+      m.block(2 * p, 2 * p, 2, 2).setIdentity();
+      r(2 * p, 0) = -ic[p].real();
+      r(2 * p + 1, 0) = -ic[p].imag();
+      continue;
+    }
+    for (int q = 0; q < 3; ++q)
+      m.block(2 * p, 2 * q, 2, 2) =
+          (g0 - g1) / 3. + (p == q ? g1 : Matrix::Zero(2, 2));
+    r.middleRows(2 * p, 2) = -(y1[p].topRows(2) + y0.topRows(2));
+  }
+  const Matrix dn = m.partialPivLu().solve(r);
+  Phases d;
+  for (int p = 0; p < 3; ++p)
+    d[p] = Complex(dn(2 * p, 0), dn(2 * p + 1, 0));
+
+  // a pole opens at the zero of its smoothed current; the smoothing removes
+  // the undamped step-to-step oscillation of the trapezoidal rule
+  std::array<Real, 3> inst;
+  for (int p = 0; p < 3; ++p)
+    inst[p] = std::real((ic[p] + d[p]) *
+                        std::polar<Real>(1.0, mShiftOmega * time));
+  const Bool valid = mCompInstCount >= 3;
+  const std::array<Real, 3> before = mCompSmooth1;
+  const std::array<Real, 3> now = updatePoleCurrents(inst);
+  if (valid && mCompArmed && **mOpeningRequested)
+    for (int p = 0; p < 3; ++p) {
+      if (mCompOpen[p])
+        continue;
+      if (before[p] * now[p] <= 0. &&
+          std::abs(before[p]) + std::abs(now[p]) > 0.) {
+        mCompOpen[p] = true;
+        SPDLOG_LOGGER_INFO(mSLog, "DP compensated pole {} opened at t={:.9f}s.",
+                           p, time);
+      }
+    }
+
+  // sequence inputs, observed node corrections (phase-a frame), state update
+  const Complex mean = (d[0] + d[1] + d[2]) / 3.;
+  Matrix u0(2, 1);
+  u0 << mean.real(), mean.imag();
+  const Matrix v0 = y0 + th0.D * u0;
+  std::array<Matrix, 3> v, xPrev, u;
+  for (int p = 0; p < 3; ++p) {
+    Matrix u1(2, 1);
+    u1 << (d[p] - mean).real(), (d[p] - mean).imag();
+    v[p] = y1[p] + th1.D * u1;
+    xPrev[p] = mCompX1[p];
+    u[p] = u1;
+    mCompX1[p] = th1.A * mCompX1[p] + th1.B * u1;
+  }
+  if (handover)
+    handOverToNetwork(th1, xPrev, u, time);
+  const Complex a = std::polar<Real>(1.0, 2. * PI / 3.);
+  for (std::size_t i = 0; i < mCompNodes.size(); ++i) {
+    // sequence parts of the node correction, per phase envelopes
+    auto at = [&](const Matrix &x) {
+      return Complex(x(2 + 2 * i, 0), x(3 + 2 * i, 0));
+    };
+    const Complex c0 = mCompNodes[i].zeroSequence ? at(v0) : Complex(0, 0);
+    const Complex c1 = (at(v[0]) + a * at(v[1]) + a * a * at(v[2])) / 3.;
+    const Complex c2 = (at(v[0]) + a * a * at(v[1]) + a * at(v[2])) / 3. *
+                       std::polar<Real>(1.0, -2. * mCompNodes[i].phaseShift);
+    const Phases c = {c0 + c1 + c2, c0 + a * a * c1 + a * c2,
+                      c0 + a * c1 + a * a * c2};
+    for (int p = 0; p < 3; ++p)
+      (**mCompNodeCorrections[i])(p, 0) =
+          c[p] * std::polar<Real>(1.0, 2. * PI * p / 3.);
+  }
+  mCompX0 = th0.A * mCompX0 + th0.B * u0;
+
+  for (int p = 0; p < 3; ++p)
+    (**mCompensationCurrent)(p, 0) = d[p];
+  mCompArmed = **mOpeningRequested;
+}
+
+std::array<Real, 3>
+DP::Ph1::Switch::updatePoleCurrents(const std::array<Real, 3> &inst) {
+  // (3 x[k] + 2 x[k-1] - x[k-2]) / 4: exact for a linear course, zero for an
+  // alternation (-1)^k
+  std::array<Real, 3> smooth = inst;
+  if (mCompInstCount >= 2)
+    for (int p = 0; p < 3; ++p)
+      smooth[p] = 0.25 * (3. * inst[p] + 2. * mCompInst1[p] - mCompInst2[p]);
+  mCompInst2 = mCompInst1;
+  mCompInst1 = inst;
+  mCompSmooth1 = smooth;
+  mCompInstCount = std::min(mCompInstCount + 1, 3);
+  return smooth;
+}
+
+void DP::Ph1::Switch::handOverToNetwork(const TheveninEquivalent &th,
+                                        const std::array<Matrix, 3> &xPrev,
+                                        const std::array<Matrix, 3> &u,
+                                        Real time) {
+  if (th.elements.empty() || th.Ex.rows() != 4 * static_cast<Matrix::Index>(
+                                                     th.elements.size())) {
+    throw std::invalid_argument(
+        "DP::Ph1::Switch network handover needs the storage elements of the "
+        "Thevenin equivalent.");
+  }
+
+  // storage element states at the end of the step as space vector
+  // P + conj(N) e^(-2 j omega t) in the phase-a frame, zero sequence apart
+  const Complex a = std::polar<Real>(1.0, 2. * PI / 3.);
+  const Complex carrier2 = std::polar<Real>(1.0, -2. * mShiftOmega * time);
+  std::array<Matrix, 3> s;
+  for (int p = 0; p < 3; ++p)
+    s[p] = th.Ex * xPrev[p] + th.Eu * u[p];
+  for (std::size_t e = 0; e < th.elements.size(); ++e) {
+    const auto &element = th.elements[e];
+    const Real shift = element.phaseShift;
+    const Matrix::Index r = 4 * static_cast<Matrix::Index>(e);
+    auto spaceVector = [&](Matrix::Index row) {
+      Phases z;
+      for (int p = 0; p < 3; ++p)
+        z[p] = Complex(s[p](row, 0), s[p](row + 1, 0));
+      const Complex pos = (z[0] + a * z[1] + a * a * z[2]) / 3.;
+      const Complex neg = (z[0] + a * a * z[1] + a * z[2]) / 3. *
+                          std::polar<Real>(1.0, -2. * shift);
+      return pos + carrier2 * std::conj(neg);
+    };
+    mCompHandoverPending.push_back(
+        {element, spaceVector(r), spaceVector(r + 2)});
+  }
+
+  // nothing physical stays in the per-phase equivalents
+  for (auto &x : mCompX1)
+    x.setZero();
+
+  **mCompHandedOver = true;
+  setPoleClosed(false);
+  SPDLOG_LOGGER_INFO(mSLog, "DP compensated poles handed over to the network.");
 }
 
 void DP::Ph1::Switch::updateZeroCrossingState(Real time) {

@@ -360,3 +360,9 @@ void DP::Ph1::Capacitor::mnaCorrectionNodes(UInt index, Int &node0,
 void DP::Ph1::Capacitor::mnaCorrectionRebuildRightVector() {
   mnaCompApplyRightSideVectorStamp(**mRightVector);
 }
+
+void DP::Ph1::Capacitor::mnaCorrectionAddState(UInt index, Complex voltage,
+                                               Complex current) {
+  (**mIntfVoltage)(0, 0) += voltage;
+  (**mIntfCurrent)(0, 0) += current;
+}

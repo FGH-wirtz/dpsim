@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <stdexcept>
 #include <type_traits>
 #include <vector>
 
@@ -52,6 +53,12 @@ public:
   virtual void mnaCorrectionNodes(UInt index, Int &node0, Int &node1) = 0;
   /// Recompute the right-hand-side contribution from the present states
   virtual void mnaCorrectionRebuildRightVector() = 0;
+  /// Adds a state handed over by a switch to terminal voltage and current
+  virtual void mnaCorrectionAddState(UInt index, VarType voltage,
+                                     VarType current) {
+    throw std::runtime_error(
+        "Component does not support a state handover from a switch.");
+  }
   /// Entry (row, col) of the admittance at the shift frequency, stamped in place
   /// of the companion admittance. (j w L)^-1 or j w C by default, zero for a
   /// current-controlled state.

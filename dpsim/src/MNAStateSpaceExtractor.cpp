@@ -219,6 +219,12 @@ void MNAStateSpaceExtractor::computeStateMatrix(
   }
 
   mAd = mAdLocal + mBdMna * mnaToStateSolution;
+  mMnaToState = mnaToStateSolution;
+
+  if (mInjection.cols() > 0) {
+    Matrix injection = mInjection;
+    mMnaToInjection = linearSolver.solve(injection);
+  }
 
   mStateMatrixValid = true;
 }

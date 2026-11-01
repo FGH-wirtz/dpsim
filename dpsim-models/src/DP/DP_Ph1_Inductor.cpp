@@ -347,3 +347,9 @@ void DP::Ph1::Inductor::mnaCorrectionNodes(UInt index, Int &node0, Int &node1) {
 void DP::Ph1::Inductor::mnaCorrectionRebuildRightVector() {
   mnaCompApplyRightSideVectorStamp(**mRightVector);
 }
+
+void DP::Ph1::Inductor::mnaCorrectionAddState(UInt index, Complex voltage,
+                                              Complex current) {
+  (**mIntfVoltage)(0, 0) += voltage;
+  (**mIntfCurrent)(0, 0) += current;
+}

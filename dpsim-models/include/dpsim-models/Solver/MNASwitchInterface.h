@@ -69,6 +69,25 @@ public:
   /// record, like takeSwitchingEvent(). Defaults to none.
   virtual std::vector<SwitchedPole> takeSwitchedPoles() { return {}; }
 
+  /// Storage element: name, nodes, L or C; phaseShift: positive-sequence
+  /// shift of its location, e.g. behind a Yd5 transformer
+  struct StorageElement {
+    String name, node0, node1;
+    Real value = 0.0;
+    Real phaseShift = 0.0;
+  };
+
+  /// Voltage and current a switch hands to a network storage element before
+  /// the next solve; the solver checks nodes and L or C.
+  struct StateHandover {
+    StorageElement element;
+    Complex voltage = Complex(0.0, 0.0);
+    Complex current = Complex(0.0, 0.0);
+  };
+
+  /// Handovers since the last call
+  virtual std::vector<StateHandover> takeStateHandover() { return {}; }
+
   // #### MNA section ####
   /// Check if switch is closed
   virtual Bool mnaIsClosed() = 0;

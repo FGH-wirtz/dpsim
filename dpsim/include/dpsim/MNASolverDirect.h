@@ -124,6 +124,11 @@ protected:
   /// systemMatrix is the post-event matrix linearSolver has factorised.
   Bool applyQuadratureCorrection(DirectLinearSolver &linearSolver,
                                  const SparseMatrix &systemMatrix, Real time);
+  /// Re-runs every right-side stamp and sums them
+  void assembleRightSide();
+  /// Adds the states the switches hand over to the storage elements and
+  /// re-assembles the right side. True if there were any.
+  Bool applyStateHandover();
   /// Cost accounting for the correction, written with the LU timings
   void logCorrectionStatistics();
 

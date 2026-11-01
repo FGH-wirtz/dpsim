@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <array>
+
 #include <dpsim-models/Base/Base_Ph1_Switch.h>
 #include <dpsim-models/Definitions.h>
 #include <dpsim-models/Logger.h>
@@ -44,6 +46,12 @@ namespace Ph1 {
 ///   alpha from 0 to 1, closing runs it from 1 to 0, since the envelope
 ///   cannot represent a discontinuity in either direction. This is the
 ///   variable-resistance ZCS-emulation approach and is not an arc model.
+///
+/// - Compensated:
+///   the network pole stays closed; compensation currents across the breaker
+///   open the poles one by one at their current zeros (Dommel). The network
+///   enters through its time-domain Thevenin equivalents across the breaker,
+///   positive and zero sequence. Assumes a linear, symmetric network.
 class Switch : public MNASimPowerComp<Complex>,
                public Base::Ph1::Switch,
                public SharedFactory<Switch>,
@@ -54,6 +62,7 @@ public:
     Ideal = 0,
     CurrentZero = 1,
     ExponentialZCSEmulation = 2,
+    Compensated = 3,
   };
 
   const Attribute<Bool>::Ptr mOpeningRequested;
@@ -78,6 +87,15 @@ public:
   /// Effective resistance currently stamped into the MNA matrix [ohm].
   const Attribute<Real>::Ptr mEffectiveResistance;
 
+  /// Compensated: true from the first opening command on
+  const Attribute<Bool>::Ptr mCompensationActive;
+  /// Compensated: compensation currents D of the three poles (3x1 envelopes)
+  const Attribute<MatrixComp>::Ptr mCompensationCurrent;
+  /// Compensated: index of the equivalents in use (topology behind the breaker)
+  const Attribute<Int>::Ptr mTheveninIndex;
+  /// Compensated: true while the network carries the states handed over
+  const Attribute<Bool>::Ptr mCompHandedOver;
+
   /// Defines UID, name, component parameters and logging level
   Switch(String uid, String name, Logger::Level loglevel = Logger::Level::off);
   /// Defines name, component parameters and logging level
@@ -93,6 +111,40 @@ public:
 
   void setExponentialSwitchingTime(Real switchingTime);
   Real exponentialSwitchingTime() const { return mExponentialSwitchingTime; }
+
+  /// Storage element of the equivalent: name, nodes, L or C
+  using StorageElement = MNASwitchInterface::StorageElement;
+  /// Time-domain Thevenin equivalent across the open breaker: input the current
+  /// (re, im), outputs v0 - v1 and the observed node voltages;
+  /// x[k] = A x[k-1] + B u[k], y[k] = C x[k-1] + D u[k].
+  /// Handover: voltage and current of each storage element at the end of the
+  /// step, s[k] = Ex x[k-1] + Eu u[k].
+  struct TheveninEquivalent {
+    Matrix A, B, C, D;
+    std::vector<String> stateNames;
+    std::vector<StorageElement> elements;
+    Matrix Ex, Eu;
+  };
+  /// Observed node; phaseShift: positive-sequence shift on the path (e.g.
+  /// -150 deg behind Yd5); zeroSequence false: the path blocks it (delta).
+  struct ObservedNode {
+    String name;
+    Real phaseShift = 0.;
+    Bool zeroSequence = true;
+  };
+  /// Compensated: positive- and zero-sequence equivalents and the observed
+  /// nodes; each node gets compensation_v_<name>, its phase voltage corrections.
+  void setTheveninEquivalents(const TheveninEquivalent &positive,
+                              const TheveninEquivalent &zero,
+                              const std::vector<ObservedNode> &nodes);
+  /// Compensated: equivalents for another topology behind the breaker, same
+  /// storage elements. Returns its thevenin_index.
+  Int addTheveninEquivalents(const TheveninEquivalent &positive,
+                             const TheveninEquivalent &zero);
+  /// Compensated: once all poles are open, hand the states of the equivalents
+  /// to the network storage elements as space vector and open the network
+  /// pole; the zero sequence stays in its equivalent.
+  void setNetworkHandover(Bool enabled) { mCompHandover = enabled; }
 
   void openSwitch() override;
   void closeSwitch() override;
@@ -135,6 +187,7 @@ public:
   Bool requestsQuadratureCorrection() const override;
   Bool takeSwitchingEvent() override;
   std::vector<SwitchedPole> takeSwitchedPoles() override;
+  std::vector<StateHandover> takeStateHandover() override;
 
   // #### MNA section for variable component ####
   Bool hasParameterChanged() override;
@@ -162,6 +215,33 @@ private:
 
   Bool mResetZeroCrossingHistory = false;
   Bool mExponentialTransitionStarted = false;
+
+  // Compensated: Thevenin equivalents, their states (positive sequence per
+  // phase, zero sequence) and the pole states
+  using Phases = std::array<Complex, 3>;
+  std::vector<TheveninEquivalent> mThevenin1, mThevenin0;
+  std::vector<Attribute<MatrixComp>::Ptr> mCompNodeCorrections;
+  std::vector<ObservedNode> mCompNodes;
+  std::array<Matrix, 3> mCompX1;
+  Matrix mCompX0;
+  // instantaneous pole currents of the last two steps and the smoothed
+  // value of the last step
+  std::array<Real, 3> mCompInst1{}, mCompInst2{}, mCompSmooth1{};
+  Int mCompInstCount = 0;
+  // the last smoothed value is from a step after the opening command
+  Bool mCompArmed = false;
+  std::array<Bool, 3> mCompOpen{};
+  Bool mCompStarted = false;
+  Bool mCompHandover = false;
+  std::vector<StateHandover> mCompHandoverPending;
+
+  void updateCompensation(Real time);
+  /// Instantaneous pole currents, kept from before the opening command on;
+  /// returns the smoothed values
+  std::array<Real, 3> updatePoleCurrents(const std::array<Real, 3> &inst);
+  void handOverToNetwork(const TheveninEquivalent &th,
+                         const std::array<Matrix, 3> &xPrev,
+                         const std::array<Matrix, 3> &u, Real time);
 
   void setPoleClosed(Bool closed);
 

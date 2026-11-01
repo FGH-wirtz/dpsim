@@ -45,6 +45,20 @@ public:
 
   const Matrix &getDiscreteStateMatrix() const { return mAd; }
 
+  /// Optional MNA source-vector columns b of a current injection u. With
+  /// them, extract() also solves Y xMNA = b, which gives
+  ///   x[k+1] = Ad x[k] + BdMna Yinv b u[k+1]
+  ///   xMNA[k+1] = Yinv CdMna x[k] + Yinv b u[k+1]
+  void setInjection(const Matrix &injection) { mInjection = injection; }
+
+  const Matrix &getMnaInputMatrix() const { return mBdMna; }
+
+  /// Yinv CdMna
+  const Matrix &getMnaStateSolution() const { return mMnaToState; }
+
+  /// Yinv b of the injection columns
+  const Matrix &getMnaInjectionSolution() const { return mMnaToInjection; }
+
   const StateSpaceMetadata &getMetadata() const { return mMetadata; }
 
   const CPS::AttributeBase::List &getAttributeDependencies() const {
@@ -110,6 +124,10 @@ private:
   Matrix mCdMna;
 
   Matrix mAd;
+
+  Matrix mInjection;
+  Matrix mMnaToState;
+  Matrix mMnaToInjection;
 };
 
 } // namespace DPsim

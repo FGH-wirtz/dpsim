@@ -366,6 +366,12 @@ public:
   /// subnet. The solverIndex selects the corresponding solver.
   const MNAStateSpaceExtractor &
   getStateSpaceExtractor(UInt solverIndex = 0) const;
+  /// To set a current injection before the first step
+  MNAStateSpaceExtractor &getStateSpaceExtractor(UInt solverIndex = 0) {
+    return const_cast<MNAStateSpaceExtractor &>(
+        static_cast<const Simulation &>(*this).getStateSpaceExtractor(
+            solverIndex));
+  }
 
   // #### Set component attributes during simulation ####
   /// CHECK: Can these be deleted? getIdObjAttribute + "**attr =" should suffice

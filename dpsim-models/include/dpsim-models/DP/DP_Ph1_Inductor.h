@@ -116,6 +116,8 @@ public:
   void mnaCorrectionNodes(UInt index, Int &node0, Int &node1) override;
   /// Recompute the equivalent current source from the present state
   void mnaCorrectionRebuildRightVector() override;
+  void mnaCorrectionAddState(UInt index, Complex voltage,
+                             Complex current) override;
 
   // #### Tearing methods ####
   void mnaTearInitialize(Real omega, Real timestep) override;
