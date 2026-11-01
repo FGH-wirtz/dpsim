@@ -33,6 +33,7 @@
 #include <dpsim-models/SP/SP_Ph1_SynchronGenerator6bOrderVBR.h>
 #include <dpsim-models/SP/SP_Ph1_SynchronGeneratorTrStab.h>
 #include <dpsim-models/SP/SP_Ph1_Transformer.h>
+#include <dpsim-models/SP/SP_Ph1_WECC_WT4B.h>
 #include <dpsim-models/SP/SP_Ph1_VDNode.h>
 #include <dpsim-models/SP/SP_Ph1_VoltageSource.h>
 #include <dpsim-models/SP/SP_Ph1_VoltageSourceInverter.h>
@@ -82,6 +83,8 @@
 #include <dpsim-models/DP/DP_Ph1_SynchronGeneratorIdeal.h>
 #include <dpsim-models/DP/DP_Ph1_SynchronGeneratorTrStab.h>
 #include <dpsim-models/DP/DP_Ph1_Transformer.h>
+#include <dpsim-models/DP/DP_Ph1_WECC_WT4B.h>
+#include <dpsim-models/DP/DP_Ph3_WECC_WT4B.h>
 #include <dpsim-models/DP/DP_Ph1_TwoTerminalITypeSSNComp.h>
 #include <dpsim-models/DP/DP_Ph1_TwoTerminalVTypeSSNComp.h>
 #include <dpsim-models/DP/DP_Ph1_VoltageSource.h>
@@ -195,6 +198,7 @@
 #include <dpsim-models/EMT/EMT_Ph3_SynchronGeneratorTrStab.h>
 #include <dpsim-models/EMT/EMT_Ph3_SynchronGeneratorVBR.h>
 #include <dpsim-models/EMT/EMT_Ph3_Transformer.h>
+#include <dpsim-models/EMT/EMT_Ph3_WECC_WT4B.h>
 #include <dpsim-models/EMT/EMT_Ph3_TwoTerminalVTypeVariableSSNComp.h>
 #include <dpsim-models/EMT/EMT_Ph3_VSIVoltageControlVCO.h>
 

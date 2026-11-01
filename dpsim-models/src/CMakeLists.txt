@@ -31,6 +31,8 @@ list(APPEND MODELS_SOURCES
 	DP/DP_Ph1_PQLoadCS.cpp
 	DP/DP_Ph1_Resistor.cpp
 	DP/DP_Ph1_Transformer.cpp
+	DP/DP_Ph1_WECC_WT4B.cpp
+	DP/DP_Ph3_WECC_WT4B.cpp
 	DP/DP_Ph1_VoltageSource.cpp
 	DP/DP_Ph1_VoltageSourceRamp.cpp
 	DP/DP_Ph1_VoltageSourceNorton.cpp
@@ -137,6 +139,7 @@ list(APPEND MODELS_SOURCES
 	EMT/EMT_Ph3_RXLoad.cpp
 	EMT/EMT_Ph3_NetworkInjection.cpp
 	EMT/EMT_Ph3_Transformer.cpp
+	EMT/EMT_Ph3_WECC_WT4B.cpp
 	EMT/EMT_Ph3_Shunt.cpp
 	EMT/EMT_Ph3_Switch.cpp
 	EMT/EMT_Ph3_PQLoad.cpp
@@ -188,6 +191,7 @@ list(APPEND MODELS_SOURCES
 	SP/SP_Ph1_Load.cpp
 	SP/SP_Ph1_Switch.cpp
 	SP/SP_Ph1_Transformer.cpp
+	SP/SP_Ph1_WECC_WT4B.cpp
 	SP/SP_Ph1_SolidStateTransformer.cpp
 	SP/SP_Ph1_Shunt.cpp
 	SP/SP_Ph1_SynchronGenerator.cpp
@@ -232,6 +236,7 @@ list(APPEND MODELS_SOURCES
 	Signal/TurbineGovernor.cpp
 	Signal/TurbineGovernorType1.cpp
 	Signal/PLL.cpp
+	Signal/PLL_Enhanced.cpp
 	Signal/Integrator.cpp
 	Signal/PowerControllerVSI.cpp
 	Signal/SineWaveGenerator.cpp

@@ -73,6 +73,9 @@ and zero sequence for `mean(D)`. Each is a state-space model `x[k] = A x[k-1] + 
 An observed node behind a phase-shifting transformer (e.g. Yd5) carries the shift `phaseShift`
 that the single-phase equivalents contain for the positive sequence; the switch gives the
 negative sequence the opposite shift and drops the zero sequence if `zeroSequence` is false.
+A converter at an observed node, `DP::Ph1::WECC_WT4B::setBreakerCompensation()`, adds these
+corrections to its terminal voltage; after the handover it reads the negative sequence from the
+network envelope itself.
 
 `DPsim::extractTheveninEquivalent()` builds the equivalents from a passive topology by the MNA
 state-space extraction: open breaker present (without it the solver splits the topology into two
